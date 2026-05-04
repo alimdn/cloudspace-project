@@ -1,10 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Check, Star } from 'lucide-react'
+import { Check, Star, Loader2, Minus, X } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 const plans = [
@@ -40,18 +41,96 @@ const plans = [
   },
 ]
 
-export function PricingView() {
-  const { user, setUser, setView } = useAppStore()
-  const { toast } = useToast()
+const comparisonFeatures = [
+  {
+    name: 'Workspaces',
+    values: ['1', '3', '10', '25', 'Unlimited'],
+  },
+  {
+    name: 'CPU',
+    values: ['1 vCPU', '2 vCPU', '4 vCPU', '8 vCPU', '16 vCPU'],
+  },
+  {
+    name: 'RAM',
+    values: ['1 GB', '2 GB', '4 GB', '8 GB', '16 GB'],
+  },
+  {
+    name: 'Storage',
+    values: ['10 GB', '25 GB', '50 GB', '100 GB', '500 GB'],
+  },
+  {
+    name: 'Support',
+    values: ['Community', 'Email', 'Priority', 'Priority', 'Dedicated'],
+  },
+  {
+    name: 'Custom Domain',
+    boolean: true,
+    values: [false, false, true, true, true],
+  },
+  {
+    name: 'Backups',
+    values: ['Daily', 'Weekly', 'Daily', 'Daily', 'Real-time'],
+  },
+  {
+    name: 'API Access',
+    boolean: true,
+    values: [false, true, true, true, true],
+  },
+  {
+    name: 'SSL',
+    boolean: true,
+    values: [true, true, true, true, true],
+  },
+]
 
-  const handleSubscribe = (planId: string) => {
-    if (planId === user?.plan) {
+const planIds = ['free', 'basic', 'pro', 'business', 'enterprise']
+
+export function PricingView() {
+  const { user, setView } = useAppStore()
+  const { toast } = useToast()
+  const [subscribing, setSubscribing] = useState<string | null>(null)
+
+  const handleSubscribe = async (planId: string) => {
+    if (!user) {
+      setView('login')
+      toast({ title: 'Sign In Required', description: 'Please sign in to subscribe to a plan', variant: 'destructive' })
+      return
+    }
+
+    if (planId === user.plan) {
       toast({ title: 'Info', description: 'You are already subscribed to this plan' })
       return
     }
-    // Simulate subscription
-    setUser({ ...(user!), plan: planId })
-    toast({ title: 'Success!', description: `Your plan has been changed to ${plans.find(p => p.id === planId)?.name}` })
+
+    if (planId === 'free') {
+      toast({ title: 'Info', description: 'You can downgrade to the free plan from Settings' })
+      return
+    }
+
+    setSubscribing(planId)
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ planId }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        toast({
+          title: 'Checkout Initiated',
+          description: `Redirecting to payment for ${plans.find(p => p.id === planId)?.name} plan...`,
+        })
+        // In production, redirect to Stripe checkout:
+        // if (json.data?.url) window.location.href = json.data.url
+      } else {
+        toast({ title: 'Error', description: json.error || 'Failed to initiate checkout', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
+      setSubscribing(null)
+    }
   }
 
   return (
@@ -107,15 +186,87 @@ export function PricingView() {
                   }`}
                   variant={isCurrent ? 'outline' : 'default'}
                   onClick={() => handleSubscribe(plan.id)}
-                  disabled={isCurrent}
+                  disabled={isCurrent || subscribing === plan.id}
                 >
-                  {isCurrent ? 'Current Plan' : 'Subscribe'}
+                  {subscribing === plan.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isCurrent ? (
+                    'Current Plan'
+                  ) : (
+                    'Subscribe'
+                  )}
                 </Button>
               </CardContent>
             </Card>
           )
         })}
       </div>
+
+      {/* Feature Comparison Table */}
+      <Card className="border-border">
+        <CardContent className="p-0">
+          <div className="p-4 md:p-6 pb-0">
+            <h2 className="text-xl font-bold mb-1">Compare Plans</h2>
+            <p className="text-sm text-muted-foreground">Detailed feature comparison across all plans</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left p-4 font-medium text-muted-foreground min-w-[140px]">Feature</th>
+                  {planIds.map((planId) => {
+                    const plan = plans.find(p => p.id === planId)!
+                    const isCurrent = user?.plan === planId
+                    return (
+                      <th
+                        key={planId}
+                        className={`p-4 text-center font-medium min-w-[100px] ${
+                          isCurrent ? 'text-sky-400' : 'text-foreground'
+                        }`}
+                      >
+                        {plan.name}
+                        {isCurrent && (
+                          <Badge className="bg-sky-500/10 text-sky-400 text-[10px] ml-1">Current</Badge>
+                        )}
+                      </th>
+                    )
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonFeatures.map((feature, idx) => (
+                  <tr
+                    key={feature.name}
+                    className={idx % 2 === 0 ? 'bg-muted/20' : ''}
+                  >
+                    <td className="p-4 font-medium text-muted-foreground">{feature.name}</td>
+                    {feature.values.map((value, colIdx) => {
+                      const isCurrent = user?.plan === planIds[colIdx]
+                      const isBool = feature.boolean
+                      if (isBool) {
+                        return (
+                          <td key={colIdx} className={`p-4 text-center ${isCurrent ? 'text-sky-400' : ''}`}>
+                            {value ? (
+                              <Check className="h-4 w-4 text-emerald-400 mx-auto" />
+                            ) : (
+                              <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                            )}
+                          </td>
+                        )
+                      }
+                      return (
+                        <td key={colIdx} className={`p-4 text-center ${isCurrent ? 'text-sky-400' : ''}`}>
+                          {value}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="text-center">
         <p className="text-sm text-muted-foreground">

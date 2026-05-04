@@ -10,6 +10,7 @@ export interface WorkspaceData {
   disk: string
   platform: string | null
   url: string | null
+  containerId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -18,6 +19,10 @@ export interface ResourceUsage {
   cpu: number
   ram: number
   disk: number
+  network: { in: number; out: number }
+  memoryUsageMb: number
+  memoryLimitMb: number
+  containerAvailable: boolean
 }
 
 interface WorkspaceState {
@@ -50,6 +55,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   removeWorkspace: (id) =>
     set((s) => ({
       workspaces: s.workspaces.filter((w) => w.id !== id),
+      resourceUsage: Object.fromEntries(
+        Object.entries(s.resourceUsage).filter(([key]) => key !== id)
+      ),
     })),
   setLoading: (loading) => set({ loading }),
   setResourceUsage: (id, usage) =>

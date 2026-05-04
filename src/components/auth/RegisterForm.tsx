@@ -40,8 +40,8 @@ export function RegisterForm() {
       toast({ title: 'Error', description: 'Passwords do not match', variant: 'destructive' })
       return
     }
-    if (password.length < 6) {
-      toast({ title: 'Error', description: 'Password must be at least 6 characters', variant: 'destructive' })
+    if (password.length < 8) {
+      toast({ title: 'Error', description: 'Password must be at least 8 characters', variant: 'destructive' })
       return
     }
     setLoading(true)
@@ -49,11 +49,14 @@ export function RegisterForm() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ name, email, password }),
       })
       const data = await res.json()
-      if (res.ok) {
-        setAuthenticated(true, data.user)
+      if (res.ok && data.success) {
+        // Backend sets httpOnly cookie, we just update client state
+        const userData = data.data?.user || data.data
+        setAuthenticated(true, userData)
         toast({ title: 'Welcome!', description: 'Your account has been created successfully' })
       } else {
         toast({ title: 'Error', description: data.error || 'Account creation failed', variant: 'destructive' })

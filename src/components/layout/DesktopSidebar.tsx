@@ -53,7 +53,7 @@ export function DesktopSidebar() {
           </div>
           <div className="mt-2">
             <span className="inline-flex items-center rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-medium text-sky-400">
-              Plan: {user?.plan === 'free' ? 'Free' : user?.plan?.charAt(0).toUpperCase() + user?.plan?.slice(1)}
+              Plan: {user?.plan === 'free' ? 'Free' : (user?.plan?.charAt(0)?.toUpperCase() ?? '') + (user?.plan?.slice(1) ?? '')}
             </span>
           </div>
         </div>

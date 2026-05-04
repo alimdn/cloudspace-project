@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { useWorkspaceStore } from '@/store/useWorkspaceStore'
 import { Card, CardContent } from '@/components/ui/card'
@@ -25,6 +25,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Plus,
   Play,
   Square,
@@ -47,7 +57,7 @@ const platformOptions = [
 
 export function WorkspacesView() {
   const { setSelectedWorkspaceId } = useAppStore()
-  const { workspaces, setWorkspaces, addWorkspace, updateWorkspace, removeWorkspace, loading } = useWorkspaceStore()
+  const { workspaces, setWorkspaces, addWorkspace, updateWorkspace, removeWorkspace, loading, setLoading } = useWorkspaceStore()
   const { toast } = useToast()
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -57,21 +67,54 @@ export function WorkspacesView() {
   const [newCpu, setNewCpu] = useState('1')
   const [newRam, setNewRam] = useState('1024')
   const [newDisk, setNewDisk] = useState('10')
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const creatingIdRef = useRef<string | null>(null)
+
+  const fetchWorkspaces = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/workspaces', { credentials: 'include' })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && Array.isArray(json.data)) {
+          setWorkspaces(json.data)
+        }
+      } else {
+        toast({ title: 'Error', description: 'Failed to fetch workspaces', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
+  }, [setWorkspaces, setLoading, toast])
 
   useEffect(() => {
-    const fetchWorkspaces = async () => {
+    fetchWorkspaces()
+  }, [fetchWorkspaces])
+
+  // Poll for real status updates on creating/error workspaces
+  useEffect(() => {
+    const hasPending = workspaces.some((w) => w.status === 'creating' || w.status === 'error')
+    if (!hasPending) return
+
+    const poll = setInterval(async () => {
       try {
-        const res = await fetch('/api/workspaces')
+        const res = await fetch('/api/workspaces', { credentials: 'include' })
         if (res.ok) {
-          const data = await res.json()
-          setWorkspaces(data)
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data)) {
+            setWorkspaces(json.data)
+          }
         }
       } catch {
-        // mock
+        // Silently retry
       }
-    }
-    fetchWorkspaces()
-  }, [setWorkspaces])
+    }, 2000) // Poll every 2s for pending workspaces
+
+    return () => clearInterval(poll)
+  }, [workspaces, setWorkspaces])
 
   const filtered = workspaces.filter(
     (w) =>
@@ -89,6 +132,7 @@ export function WorkspacesView() {
       const res = await fetch('/api/workspaces', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           name: newName,
           platform: newPlatform,
@@ -98,16 +142,12 @@ export function WorkspacesView() {
         }),
       })
       if (res.ok) {
-        const ws = await res.json()
-        addWorkspace(ws)
-        toast({ title: 'Success', description: 'Creating your workspace...' })
-
-        // Simulate creation → running
-        setTimeout(() => {
-          updateWorkspace(ws.id, { status: 'running' })
-          toast({ title: 'Done!', description: `"${ws.name}" is now running` })
-        }, 3000)
-
+        const json = await res.json()
+        if (json.success && json.data) {
+          addWorkspace(json.data)
+          creatingIdRef.current = json.data.id
+          toast({ title: 'Success', description: 'Workspace creation started...' })
+        }
         setDialogOpen(false)
         setNewName('')
         setNewPlatform('general')
@@ -115,8 +155,8 @@ export function WorkspacesView() {
         setNewRam('1024')
         setNewDisk('10')
       } else {
-        const data = await res.json()
-        toast({ title: 'Error', description: data.error || 'Failed to create workspace', variant: 'destructive' })
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to create workspace', variant: 'destructive' })
       }
     } catch {
       toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
@@ -127,22 +167,51 @@ export function WorkspacesView() {
 
   const handleToggleStatus = async (ws: typeof workspaces[0]) => {
     const newStatus = ws.status === 'running' ? 'stopped' : 'running'
-    updateWorkspace(ws.id, { status: newStatus })
-    toast({
-      title: newStatus === 'running' ? 'Started' : 'Stopped',
-      description: `"${ws.name}" ${newStatus === 'running' ? 'is now running' : 'has been stopped'}`,
-    })
+    try {
+      const res = await fetch(`/api/workspaces/${ws.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          updateWorkspace(ws.id, { status: json.data.status })
+        }
+        toast({
+          title: newStatus === 'running' ? 'Started' : 'Stopped',
+          description: `"${ws.name}" ${newStatus === 'running' ? 'is now running' : 'has been stopped'}`,
+        })
+      } else {
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to update workspace', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    }
   }
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      const res = await fetch(`/api/workspaces/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/workspaces/${deleteTarget.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
       if (res.ok) {
-        removeWorkspace(id)
-        toast({ title: 'Deleted', description: `"${name}" has been deleted` })
+        removeWorkspace(deleteTarget.id)
+        toast({ title: 'Deleted', description: `"${deleteTarget.name}" has been deleted` })
+        setDeleteTarget(null)
+      } else {
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to delete workspace', variant: 'destructive' })
       }
     } catch {
       toast({ title: 'Error', description: 'Failed to delete workspace', variant: 'destructive' })
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -357,6 +426,13 @@ export function WorkspacesView() {
                   </div>
                 </div>
 
+                {/* Container ID indicator */}
+                {ws.containerId && (
+                  <p className="text-xs text-muted-foreground mb-3 font-mono">
+                    Container: {ws.containerId.slice(0, 12)}
+                  </p>
+                )}
+
                 {/* Actions */}
                 <div className="flex items-center gap-2">
                   <Button
@@ -390,7 +466,7 @@ export function WorkspacesView() {
                     size="sm"
                     variant="outline"
                     className="text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDelete(ws.id, ws.name)}
+                    onClick={() => setDeleteTarget({ id: ws.id, name: ws.name })}
                     disabled={ws.status === 'creating'}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -401,6 +477,30 @@ export function WorkspacesView() {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Workspace</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This action cannot be undone.
+              All data associated with this workspace will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

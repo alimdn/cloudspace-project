@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Receipt, Download, CreditCard, CalendarDays } from 'lucide-react'
+import { Receipt, Download, CreditCard, CalendarDays, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface InvoiceData {
@@ -17,33 +17,53 @@ interface InvoiceData {
   date: string
 }
 
+interface PaymentMethod {
+  type: string
+  last4: string
+  expiryMonth: number
+  expiryYear: number
+}
+
 export function BillingView() {
   const { user } = useAppStore()
   const { toast } = useToast()
   const [invoices, setInvoices] = useState<InvoiceData[]>([])
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchInvoices = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/api/billing/invoices')
-        if (res.ok) {
-          const data = await res.json()
-          setInvoices(data)
+        const [invRes, pmRes] = await Promise.all([
+          fetch('/api/billing/invoices', { credentials: 'include' }),
+          fetch('/api/billing/payment-method', { credentials: 'include' }).catch(() => null),
+        ])
+
+        if (invRes && invRes.ok) {
+          const json = await invRes.json()
+          if (json.success) {
+            const invData = Array.isArray(json.data) ? json.data : json.data?.items || []
+            setInvoices(invData)
+          }
+        } else {
+          toast({ title: 'Error', description: 'Failed to load invoices', variant: 'destructive' })
+        }
+
+        if (pmRes && pmRes.ok) {
+          const json = await pmRes.json()
+          if (json.success && json.data) {
+            setPaymentMethod(json.data)
+          }
         }
       } catch {
-        // Generate mock invoices
-        setInvoices([
-          { id: 'inv-001', amount: 9, plan: 'Basic', status: 'paid', date: new Date().toISOString() },
-          { id: 'inv-002', amount: 9, plan: 'Basic', status: 'paid', date: new Date(Date.now() - 30 * 86400000).toISOString() },
-          { id: 'inv-003', amount: 0, plan: 'Free', status: 'paid', date: new Date(Date.now() - 60 * 86400000).toISOString() },
-        ])
+        toast({ title: 'Error', description: 'Failed to load billing data', variant: 'destructive' })
       } finally {
         setLoading(false)
       }
     }
-    fetchInvoices()
-  }, [])
+    fetchData()
+  }, [toast])
 
   const planLabels: Record<string, string> = {
     free: 'Free',
@@ -51,6 +71,14 @@ export function BillingView() {
     pro: 'Pro',
     business: 'Business',
     enterprise: 'Enterprise',
+  }
+
+  const planPrices: Record<string, string> = {
+    free: '0',
+    basic: '9',
+    pro: '29',
+    business: '59',
+    enterprise: '99',
   }
 
   const statusLabels: Record<string, string> = {
@@ -65,8 +93,30 @@ export function BillingView() {
     failed: 'bg-red-500/10 text-red-400',
   }
 
-  const handleDownload = (id: string) => {
-    toast({ title: 'Downloading', description: `Downloading invoice ${id}` })
+  const handleDownload = async (id: string) => {
+    setDownloading(id)
+    try {
+      const res = await fetch(`/api/billing/invoices/${id}/download`, { credentials: 'include' })
+      if (res.ok) {
+        const blob = await res.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `invoice-${id}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+        toast({ title: 'Downloaded', description: `Invoice ${id} downloaded successfully` })
+      } else {
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to download invoice', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Failed to download invoice', variant: 'destructive' })
+    } finally {
+      setDownloading(null)
+    }
   }
 
   return (
@@ -94,16 +144,7 @@ export function BillingView() {
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Monthly Cost</p>
               <p className="text-2xl font-bold">
-                $
-                {user?.plan === 'free'
-                  ? '0'
-                  : user?.plan === 'basic'
-                  ? '9'
-                  : user?.plan === 'pro'
-                  ? '29'
-                  : user?.plan === 'business'
-                  ? '59'
-                  : '99'}
+                ${planPrices[user?.plan || 'free'] || '0'}
               </p>
             </div>
           </div>
@@ -119,20 +160,38 @@ export function BillingView() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-16 rounded-lg bg-muted flex items-center justify-center text-xs font-mono text-muted-foreground">
-                VISA
+          {loading ? (
+            <Skeleton className="h-14 rounded-lg" />
+          ) : paymentMethod ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-16 rounded-lg bg-muted flex items-center justify-center text-xs font-mono text-muted-foreground">
+                  {paymentMethod.type.toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">**** **** **** {paymentMethod.last4}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Expires {String(paymentMethod.expiryMonth).padStart(2, '0')}/{paymentMethod.expiryYear}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium">**** **** **** 4242</p>
-                <p className="text-xs text-muted-foreground">Expires 12/2025</p>
+              <Button variant="outline" size="sm">
+                Edit
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-16 rounded-lg bg-muted flex items-center justify-center">
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">No payment method</p>
+                  <p className="text-xs text-muted-foreground">Add a payment method to upgrade your plan</p>
+                </div>
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              Edit
-            </Button>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -184,8 +243,13 @@ export function BillingView() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDownload(inv.id)}
+                      disabled={downloading === inv.id}
                     >
-                      <Download className="h-4 w-4" />
+                      {downloading === inv.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>

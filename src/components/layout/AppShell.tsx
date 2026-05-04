@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useAppStore, type ViewType } from '@/store/useAppStore'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Header } from './Header'
@@ -16,6 +17,7 @@ import { BillingView } from '@/components/dashboard/BillingView'
 import { SettingsView } from '@/components/dashboard/SettingsView'
 import { SupportView } from '@/components/dashboard/SupportView'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Loader2 } from 'lucide-react'
 
 const viewComponents: Record<ViewType, React.ComponentType> = {
   landing: LandingView,
@@ -31,11 +33,28 @@ const viewComponents: Record<ViewType, React.ComponentType> = {
 }
 
 export function AppShell() {
-  const { currentView, isAuthenticated } = useAppStore()
+  const { currentView, isAuthenticated, authChecked, checkSession } = useAppStore()
   const isMobile = useIsMobile()
   const showAppLayout = isAuthenticated && currentView !== 'landing'
 
   const ViewComponent = viewComponents[currentView]
+
+  // Validate session on app load
+  useEffect(() => {
+    checkSession()
+  }, [checkSession])
+
+  // Show loading spinner while checking session
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-sky-400" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir="ltr">

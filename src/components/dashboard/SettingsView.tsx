@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,8 +9,17 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   User,
-  Mail,
   Lock,
   Bell,
   Shield,
@@ -25,12 +34,51 @@ export function SettingsView() {
   const [name, setName] = useState(user?.name || '')
   const [email, setEmail] = useState(user?.email || '')
   const [saving, setSaving] = useState(false)
+
+  // Password fields
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
+
+  // Notifications
   const [notifications, setNotifications] = useState({
     email: true,
     workspace: true,
     billing: true,
     marketing: false,
   })
+  const [savingNotifications, setSavingNotifications] = useState(false)
+
+  // Delete account
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  // Sync name/email when user changes
+  useEffect(() => {
+    if (user) {
+      setName(user.name)
+      setEmail(user.email)
+    }
+  }, [user])
+
+  // Fetch notification settings on mount
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch('/api/user/notifications', { credentials: 'include' })
+        if (res.ok) {
+          const json = await res.json()
+          if (json.success && json.data) {
+            setNotifications(json.data)
+          }
+        }
+      } catch {
+        // Use defaults
+      }
+    }
+    fetchNotifications()
+  }, [])
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -38,12 +86,114 @@ export function SettingsView() {
       return
     }
     setSaving(true)
-    // Simulate save
-    setTimeout(() => {
-      setUser({ ...user!, name, email })
-      toast({ title: 'Saved', description: 'Your settings have been updated successfully' })
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: name.trim() }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          setUser(json.data)
+        }
+        toast({ title: 'Saved', description: 'Your settings have been updated successfully' })
+      } else {
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to save settings', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
       setSaving(false)
-    }, 1000)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!currentPassword) {
+      toast({ title: 'Error', description: 'Please enter your current password', variant: 'destructive' })
+      return
+    }
+    if (!newPassword) {
+      toast({ title: 'Error', description: 'Please enter a new password', variant: 'destructive' })
+      return
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast({ title: 'Error', description: 'New passwords do not match', variant: 'destructive' })
+      return
+    }
+    if (newPassword.length < 8) {
+      toast({ title: 'Error', description: 'Password must be at least 8 characters', variant: 'destructive' })
+      return
+    }
+    setChangingPassword(true)
+    try {
+      const res = await fetch('/api/user/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+      if (res.ok) {
+        toast({ title: 'Password Updated', description: 'Please sign in again with your new password' })
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmNewPassword('')
+        // Logout user since sessions are invalidated
+        setTimeout(() => logout(), 1500)
+      } else {
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to change password', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  const handleSaveNotifications = async () => {
+    setSavingNotifications(true)
+    try {
+      const res = await fetch('/api/user/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(notifications),
+      })
+      if (res.ok) {
+        toast({ title: 'Saved', description: 'Notification preferences updated' })
+      } else {
+        toast({ title: 'Error', description: 'Failed to save notification settings', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
+      setSavingNotifications(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/user/account', {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (res.ok) {
+        toast({ title: 'Account Deleted', description: 'Your account has been permanently deleted' })
+        logout()
+      } else {
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to delete account', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
+      setDeleting(false)
+      setDeleteDialogOpen(false)
+    }
   }
 
   return (
@@ -116,24 +266,43 @@ export function SettingsView() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Current Password</Label>
-            <Input type="password" placeholder="••••••••" className="bg-background" />
+            <Input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="••••••••"
+              className="bg-background"
+            />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>New Password</Label>
-              <Input type="password" placeholder="••••••••" className="bg-background" />
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                className="bg-background"
+              />
             </div>
             <div className="space-y-2">
               <Label>Confirm New Password</Label>
-              <Input type="password" placeholder="••••••••" className="bg-background" />
+              <Input
+                type="password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                placeholder="••••••••"
+                className="bg-background"
+              />
             </div>
           </div>
           <Button
             variant="outline"
-            onClick={() => toast({ title: 'Done', description: 'Password changed successfully' })}
+            onClick={handleChangePassword}
+            disabled={changingPassword}
             className="gap-2"
           >
-            <Lock className="h-4 w-4" />
+            {changingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
             Update Password
           </Button>
         </CardContent>
@@ -164,9 +333,17 @@ export function SettingsView() {
               </div>
               <Switch
                 checked={notifications[item.key]}
-                onCheckedChange={(checked) =>
-                  setNotifications((n) => ({ ...n, [item.key]: checked }))
-                }
+                onCheckedChange={(checked) => {
+                  const updated = { ...notifications, [item.key]: checked }
+                  setNotifications(updated)
+                  // Auto-save notification changes
+                  fetch('/api/user/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(updated),
+                  }).catch(() => {})
+                }}
               />
             </div>
           ))}
@@ -191,7 +368,7 @@ export function SettingsView() {
             </div>
             <Button
               variant="destructive"
-              onClick={logout}
+              onClick={() => setDeleteDialogOpen(true)}
               className="gap-2"
             >
               <Shield className="h-4 w-4" />
@@ -200,6 +377,30 @@ export function SettingsView() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Account Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account Permanently</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. All your workspaces, data, and account information will be permanently deleted.
+              Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Yes, Delete My Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+  # ── Next.js Application ──
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cloudspace-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://cloudspace:cloudspace123@postgres:5432/cloudspace
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - DOCKER_HOST=/var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - app-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cloudspace-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ── PostgreSQL Database ──
+  postgres:
+    image: postgres:15-alpine
+    container_name: cloudspace-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=cloudspace
+      - POSTGRES_PASSWORD=cloudspace123
+      - POSTGRES_DB=cloudspace
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - cloudspace-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloudspace -d cloudspace"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis Cache ──
+  redis:
+    image: redis:7-alpine
+    container_name: cloudspace-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - cloudspace-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  app-data:
+    driver: local
+
+networks:
+  cloudspace-network:
+    driver: bridge

@@ -28,11 +28,14 @@ export function LoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       })
       const data = await res.json()
-      if (res.ok) {
-        setAuthenticated(true, data.user)
+      if (res.ok && data.success) {
+        // Backend sets httpOnly cookie, we just update client state with user info
+        const userData = data.data?.user || data.data
+        setAuthenticated(true, userData)
         toast({ title: 'Welcome!', description: 'Successfully signed in' })
       } else {
         toast({ title: 'Error', description: data.error || 'Sign in failed', variant: 'destructive' })

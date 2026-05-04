@@ -1,12 +1,21 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useAppStore } from '@/store/useAppStore'
-import { useWorkspaceStore } from '@/store/useWorkspaceStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   ArrowLeft,
   Play,
@@ -19,71 +28,230 @@ import {
   MemoryStick,
   HardDrive,
   Activity,
+  Loader2,
+  Wifi,
+  WifiOff,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import type { WorkspaceData } from '@/store/useWorkspaceStore'
+
+interface ResourceUsage {
+  cpu: number
+  ram: number
+  disk: number
+  network: { in: number; out: number }
+  memoryUsageMb: number
+  memoryLimitMb: number
+  containerAvailable: boolean
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`
+}
 
 export function WorkspaceDetailView() {
   const { selectedWorkspaceId, setView } = useAppStore()
-  const { workspaces, updateWorkspace } = useWorkspaceStore()
   const { toast } = useToast()
-  const workspace = workspaces.find((w) => w.id === selectedWorkspaceId)
+  const [workspace, setWorkspace] = useState<WorkspaceData | null>(null)
+  const [usage, setUsage] = useState<ResourceUsage>({
+    cpu: 0,
+    ram: 0,
+    disk: 0,
+    network: { in: 0, out: 0 },
+    memoryUsageMb: 0,
+    memoryLimitMb: 0,
+    containerAvailable: false,
+  })
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [restartDialogOpen, setRestartDialogOpen] = useState(false)
+  const [sseConnected, setSseConnected] = useState(false)
+  const eventSourceRef = useRef<EventSource | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Simulate resource usage
-  const [usage, setUsage] = useState({ cpu: 0, ram: 0, disk: 0 })
-  const workspaceIdRef = useRef(selectedWorkspaceId)
-  workspaceIdRef.current = selectedWorkspaceId
+  const fetchWorkspace = useCallback(async () => {
+    if (!selectedWorkspaceId) return
+    try {
+      const res = await fetch(`/api/workspaces/${selectedWorkspaceId}`, { credentials: 'include' })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          setWorkspace(json.data)
+        }
+      } else {
+        toast({ title: 'Error', description: 'Failed to load workspace', variant: 'destructive' })
+        setView('workspaces')
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedWorkspaceId, setView, toast])
 
+  // ── SSE connection for real-time stats ──
+  useEffect(() => {
+    if (!selectedWorkspaceId || !workspace) return
+
+    // Only connect SSE when workspace is running
+    if (workspace.status !== 'running') {
+      setSseConnected(false)
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+        eventSourceRef.current = null
+      }
+      return
+    }
+
+    const es = new EventSource(`/api/workspaces/${selectedWorkspaceId}/ws`)
+    eventSourceRef.current = es
+
+    es.addEventListener('connected', () => {
+      setSseConnected(true)
+    })
+
+    es.addEventListener('close', () => {
+      setSseConnected(false)
+      es.close()
+      eventSourceRef.current = null
+    })
+
+    es.addEventListener('error', (e) => {
+      // EventSource will auto-reconnect for transient errors
+      // Only close on explicit close event
+      if ((e as MessageEvent).data) {
+        try {
+          const data = JSON.parse((e as MessageEvent).data)
+          if (data.type === 'close') {
+            setSseConnected(false)
+            es.close()
+            eventSourceRef.current = null
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    })
+
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        if (data.type === 'stats') {
+          setUsage({
+            cpu: Math.round(data.cpu),
+            ram: Math.round(data.ram),
+            disk: Math.round(data.disk),
+            network: data.network || { in: 0, out: 0 },
+            memoryUsageMb: data.memoryUsageMb || 0,
+            memoryLimitMb: data.memoryLimitMb || 0,
+            containerAvailable: data.containerAvailable || false,
+          })
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+
+    return () => {
+      es.close()
+      eventSourceRef.current = null
+      setSseConnected(false)
+    }
+  }, [selectedWorkspaceId, workspace?.status])
+
+  // ── Fallback polling when SSE is not connected ──
+  useEffect(() => {
+    if (!selectedWorkspaceId || sseConnected) return
+
+    // Poll workspace status every 3s when not connected to SSE
+    pollRef.current = setInterval(fetchWorkspace, 3000)
+
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current)
+      }
+    }
+  }, [selectedWorkspaceId, sseConnected, fetchWorkspace])
+
+  // ── Initial load ──
   useEffect(() => {
     if (!selectedWorkspaceId) {
       setView('workspaces')
+      return
     }
-  }, [selectedWorkspaceId, setView])
-
-  useEffect(() => {
-    const tick = () => {
-      const ws = workspaces.find((w) => w.id === workspaceIdRef.current)
-      if (!ws || ws.status !== 'running') return
-      setUsage({
-        cpu: Math.floor(Math.random() * 60) + 10,
-        ram: Math.floor(Math.random() * 50) + 20,
-        disk: Math.floor(Math.random() * 30) + 5,
-      })
-    }
-    tick()
-    const interval = setInterval(tick, 3000)
-    return () => clearInterval(interval)
-  }, [workspaces])
-
-  if (!selectedWorkspaceId || !workspace) {
-    return (
-      <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 rounded-xl" />
-      </div>
-    )
-  }
-
-  const handleToggleStatus = () => {
-    const newStatus = workspace.status === 'running' ? 'stopped' : 'running'
-    updateWorkspace(workspace.id, { status: newStatus })
-    toast({
-      title: newStatus === 'running' ? 'Started' : 'Stopped',
-      description: `"${workspace.name}" ${newStatus === 'running' ? 'is now running' : 'has been stopped'}`,
+    setLoading(true)
+    setUsage({
+      cpu: 0,
+      ram: 0,
+      disk: 0,
+      network: { in: 0, out: 0 },
+      memoryUsageMb: 0,
+      memoryLimitMb: 0,
+      containerAvailable: false,
     })
-    if (newStatus === 'running') {
-      setUsage({ cpu: Math.floor(Math.random() * 30) + 10, ram: Math.floor(Math.random() * 40) + 20, disk: Math.floor(Math.random() * 20) + 5 })
-    } else {
-      setUsage({ cpu: 0, ram: 0, disk: 0 })
+    fetchWorkspace()
+  }, [selectedWorkspaceId, setView, fetchWorkspace])
+
+  const handleToggleStatus = async () => {
+    if (!workspace || actionLoading) return
+    const newStatus = workspace.status === 'running' ? 'stopped' : 'running'
+    setActionLoading(true)
+    try {
+      const res = await fetch(`/api/workspaces/${workspace.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          setWorkspace(json.data)
+        }
+        toast({
+          title: newStatus === 'running' ? 'Started' : 'Stopped',
+          description: `"${workspace.name}" ${newStatus === 'running' ? 'is now running' : 'has been stopped'}`,
+        })
+      } else {
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to update workspace', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
+      setActionLoading(false)
     }
   }
 
-  const handleRestart = () => {
-    updateWorkspace(workspace.id, { status: 'creating' })
-    toast({ title: 'Restarting', description: 'Restarting your workspace...' })
-    setTimeout(() => {
-      updateWorkspace(workspace.id, { status: 'running' })
-      toast({ title: 'Done!', description: 'Workspace restarted successfully' })
-    }, 3000)
+  const handleRestart = async () => {
+    if (!workspace || actionLoading) return
+    setRestartDialogOpen(false)
+    setActionLoading(true)
+    try {
+      const res = await fetch(`/api/workspaces/${workspace.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: 'creating' }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.success && json.data) {
+          setWorkspace(json.data)
+        }
+        toast({ title: 'Restarting', description: 'Restarting your workspace...' })
+      } else {
+        const json = await res.json()
+        toast({ title: 'Error', description: json.error || 'Failed to restart workspace', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   const statusColors: Record<string, string> = {
@@ -98,6 +266,24 @@ export function WorkspaceDetailView() {
     stopped: 'Stopped',
     creating: 'Creating',
     error: 'Error',
+  }
+
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64 rounded-xl" />
+      </div>
+    )
+  }
+
+  if (!workspace) {
+    return (
+      <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64 rounded-xl" />
+      </div>
+    )
   }
 
   return (
@@ -124,12 +310,23 @@ export function WorkspaceDetailView() {
             </p>
           </div>
         </div>
-        <Badge variant="outline" className={statusColors[workspace.status]}>
-          {workspace.status === 'creating' && (
-            <span className="animate-pulse ml-1">●</span>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className={statusColors[workspace.status]}>
+            {workspace.status === 'creating' && (
+              <span className="animate-pulse ml-1">●</span>
+            )}
+            {statusLabels[workspace.status]}
+          </Badge>
+          {workspace.status === 'running' && (
+            <Badge
+              variant="outline"
+              className={sseConnected ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground'}
+            >
+              {sseConnected ? <Wifi className="h-3 w-3 mr-1" /> : <WifiOff className="h-3 w-3 mr-1" />}
+              {sseConnected ? 'Live' : 'Polling'}
+            </Badge>
           )}
-          {statusLabels[workspace.status]}
-        </Badge>
+        </div>
       </div>
 
       {/* Resource Monitoring */}
@@ -170,7 +367,7 @@ export function WorkspaceDetailView() {
               <div>
                 <p className="font-semibold text-sm">Memory (RAM)</p>
                 <p className="text-xs text-muted-foreground">
-                  {usage.ram}% of {(Number(workspace.ram) / 1024).toFixed(0)} GB
+                  {usage.memoryUsageMb.toFixed(0)} / {usage.memoryLimitMb.toFixed(0)} MB ({usage.ram}%)
                 </p>
               </div>
             </div>
@@ -216,6 +413,30 @@ export function WorkspaceDetailView() {
         </Card>
       </div>
 
+      {/* Network I/O */}
+      {workspace.status === 'running' && (
+        <Card className="border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Activity className="h-5 w-5 text-muted-foreground" />
+              Network I/O
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-lg bg-muted/50 p-4">
+                <p className="text-xs text-muted-foreground mb-1">Inbound</p>
+                <p className="font-semibold text-lg">{formatBytes(usage.network.in)}</p>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-4">
+                <p className="text-xs text-muted-foreground mb-1">Outbound</p>
+                <p className="font-semibold text-lg">{formatBytes(usage.network.out)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Actions */}
       <Card className="border-border">
         <CardHeader className="pb-3">
@@ -234,8 +455,9 @@ export function WorkspaceDetailView() {
                   : 'gap-2'
               }
               onClick={handleToggleStatus}
-              disabled={workspace.status === 'creating'}
+              disabled={workspace.status === 'creating' || actionLoading}
             >
+              {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {workspace.status === 'running' ? (
                 <>
                   <Square className="h-4 w-4" />
@@ -251,17 +473,19 @@ export function WorkspaceDetailView() {
             <Button
               variant="outline"
               className="gap-2"
-              onClick={handleRestart}
-              disabled={workspace.status === 'creating'}
+              onClick={() => setRestartDialogOpen(true)}
+              disabled={workspace.status === 'creating' || actionLoading}
             >
               <RotateCw className="h-4 w-4" />
               Restart
             </Button>
             {workspace.url && (
-              <Button variant="outline" className="gap-2">
-                <ExternalLink className="h-4 w-4" />
-                <span>Open URL</span>
-              </Button>
+              <a href={workspace.url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Open URL</span>
+                </Button>
+              </a>
             )}
             <Button
               variant="outline"
@@ -298,12 +522,32 @@ export function WorkspaceDetailView() {
               <p className="font-semibold">{workspace.disk} GB</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">ID</p>
-              <p className="font-mono text-xs truncate">{workspace.id}</p>
+              <p className="text-xs text-muted-foreground mb-1">Container</p>
+              <p className="font-mono text-xs truncate">
+                {workspace.containerId ? `${workspace.containerId.slice(0, 12)}` : 'Not attached'}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Restart Confirmation Dialog */}
+      <AlertDialog open={restartDialogOpen} onOpenChange={setRestartDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restart Workspace</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to restart <strong>{workspace.name}</strong>? The workspace will be temporarily unavailable during the restart process.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestart}>
+              Restart
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

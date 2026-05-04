@@ -3,8 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  free
+  basic
+  pro
+  business
+  enterprise
+}
+
+enum WorkspaceStatus {
+  running
+  stopped
+  creating
+  error
 }
 
 model User {
@@ -12,25 +27,40 @@ model User {
   name      String
   email     String      @unique
   password  String
-  plan      String      @default("free")
+  plan      Plan        @default(free)
   createdAt DateTime    @default(now())
-  workspaces Workspace[]
-  invoices   Invoice[]
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
+
+  workspaces           Workspace[]
+  invoices             Invoice[]
+  sessions             Session[]
+  passwordResetTokens  PasswordResetToken[]
+  subscriptions        Subscription[]
+  paymentMethods       PaymentMethod[]
+
+  @@index([email])
 }
 
 model Workspace {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  status    String   @default("running")
-  cpu       String   @default("1")
-  ram       String   @default("1024")
-  disk      String   @default("10")
-  platform  String?
-  url       String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  status      WorkspaceStatus @default(running)
+  cpu         String          @default("1")
+  ram         String          @default("1024")
+  disk        String          @default("10")
+  platform    String?
+  url         String?
+  containerId String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  usageRecords UsageRecord[]
+
+  @@index([userId])
+  @@index([containerId])
 }
 
 model Invoice {
@@ -40,5 +70,83 @@ model Invoice {
   amount    Float
   plan      String
   status    String   @default("paid")
+  stripeInvoiceId String?
   date      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeSubscriptionId String   @unique
+  stripeCustomerId     String
+  plan                 Plan     @default(free)
+  status               String   @default("active")
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+}
+
+model PaymentMethod {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripePaymentMethodId String   @unique
+  type                  String
+  last4                 String
+  expMonth              Int
+  expYear               Int
+  isDefault             Boolean  @default(false)
+  createdAt             DateTime @default(now())
+
+  @@index([userId])
+}
+
+model UsageRecord {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cpu             Float    @default(0)
+  ram             Float    @default(0)
+  disk            Float    @default(0)
+  networkIn       Float    @default(0)
+  networkOut      Float    @default(0)
+  memoryUsageMb   Float    @default(0)
+  memoryLimitMb   Float    @default(0)
+  timestamp       DateTime @default(now())
+
+  @@index([workspaceId])
+  @@index([timestamp])
 }

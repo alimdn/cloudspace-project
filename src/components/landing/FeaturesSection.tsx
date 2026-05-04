@@ -54,9 +54,8 @@ export function FeaturesSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Powerful{' '}
             <span className="bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">
-              Features
+              Powerful Features
             </span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
