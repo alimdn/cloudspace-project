@@ -7,39 +7,39 @@ import { cn } from '@/lib/utils'
 
 const faqs = [
   {
-    question: 'ما هي مساحة العمل السحابية؟',
+    question: 'What is a cloud workspace?',
     answer:
-      'مساحة العمل السحابية هي حاوية Docker معزولة بالكامل تحصل فيها على موارد مخصصة (معالج، ذاكرة، تخزين). يمكنك تشغيل أي برنامج مفتوح المصدر مثل n8n، WordPress، قواعد البيانات، والمزيد.',
+      'A cloud workspace is a fully isolated Docker container where you get dedicated resources (CPU, RAM, storage). You can run any open-source application such as n8n, WordPress, databases, and more.',
   },
   {
-    question: 'هل بياناتي محمية؟',
+    question: 'Is my data protected?',
     answer:
-      'نعم بالتأكيد. كل مساحة عمل معزولة تماماً عن المساحات الأخرى. نستخدم تشفير AES-256 للبيانات في حالة السكون ونقل آمن HTTPS. كما نوفر نسخاً احتياطية تلقائية حسب خطتك.',
+      'Absolutely. Each workspace is completely isolated from all others. We use AES-256 encryption for data at rest and HTTPS for secure transfers. Automatic backups are included based on your plan.',
   },
   {
-    question: 'كيف يمكنني الترقية بين الخطط؟',
+    question: 'How can I upgrade between plans?',
     answer:
-      'يمكنك الترقية في أي وقت من صفحة الأسعار في لوحة التحكم. سيتم احتساب الفرق في السعر بشكل تناسبي مع المدة المتبقية من اشتراكك الحالي.',
+      'You can upgrade anytime from the Pricing page in your dashboard. The price difference will be prorated based on the remaining time of your current subscription.',
   },
   {
-    question: 'هل يمكنني تشغيل أي برنامج؟',
+    question: 'Can I run any application?',
     answer:
-      'يمكنك تشغيل أي برنامج مفتوح المصدر يدعم التشغيل في حاويات Docker. يشمل ذلك n8n، WordPress، Nextcloud، MySQL، PostgreSQL، Redis، Node.js، Python، والمزيد.',
+      'You can run any open-source application that supports Docker containers. This includes n8n, WordPress, Nextcloud, MySQL, PostgreSQL, Redis, Node.js, Python, and many more.',
   },
   {
-    question: 'ماذا يحدث عند انتهاء الاشتراك؟',
+    question: 'What happens when my subscription expires?',
     answer:
-      'عند انتهاء الاشتراك، يتم إيقاف مساحات العمل مؤقتاً مع الاحتفاظ ببياناتك لمدة 30 يوماً. يمكنك إعادة الاشتراك خلال هذه الفترة لاستعادة مساحات العمل بالكامل.',
+      'When your subscription expires, workspaces are temporarily suspended while your data is preserved for 30 days. You can resubscribe within this period to fully restore your workspaces.',
   },
   {
-    question: 'هل يوجد حد للنطاق الترددي؟',
+    question: 'Is there a bandwidth limit?',
     answer:
-      'جميع الخطط تشمل نقل بيانات غير محدود. لا نفرض أي رسوم إضافية على حركة البيانات.',
+      'All plans include unlimited data transfer. We do not impose any additional charges on traffic or bandwidth usage.',
   },
   {
-    question: 'كيف يعمل الدعم الفني؟',
+    question: 'How does technical support work?',
     answer:
-      'نوفر دعماً عبر البريد الإلكتروني لجميع الخطط. خطط الأساسي وما فوق تحصل على دعم على مدار الساعة. خطط الأعمال والمؤسسات تحصل على مدير حساب مخصص وفريق دعم مخصص.',
+      'We provide email support for all plans. Basic plans and above get 24/7 support. Business and Enterprise plans receive a dedicated account manager and a specialized support team.',
   },
 ]
 
@@ -56,13 +56,13 @@ export function FAQSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            الأسئلة{' '}
-            <span className="bg-gradient-to-l from-sky-400 to-cyan-400 bg-clip-text text-transparent">
-              الشائعة
+            Frequently Asked{' '}
+            <span className="bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">
+              Questions
             </span>
           </h2>
           <p className="text-muted-foreground">
-            إجابات على أكثر الأسئلة شيوعاً حول منصة كلاود سبيس.
+            Answers to the most common questions about CloudSpace.
           </p>
         </motion.div>
 
@@ -77,12 +77,12 @@ export function FAQSection() {
             >
               <button
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                className="flex w-full items-center justify-between rounded-xl border border-border bg-card p-4 text-right transition-colors hover:border-sky-500/20"
+                className="flex w-full items-center justify-between rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-sky-500/20"
               >
                 <span className="font-medium text-sm">{faq.question}</span>
                 <ChevronDown
                   className={cn(
-                    'h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 mr-4',
+                    'h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ml-4',
                     openIndex === i && 'rotate-180'
                   )}
                 />

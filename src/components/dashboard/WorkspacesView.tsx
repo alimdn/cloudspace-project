@@ -38,7 +38,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 
 const platformOptions = [
-  { value: 'general', label: 'عام (Ubuntu)' },
+  { value: 'general', label: 'General (Ubuntu)' },
   { value: 'n8n', label: 'n8n' },
   { value: 'wordpress', label: 'WordPress' },
   { value: 'nextcloud', label: 'Nextcloud' },
@@ -86,7 +86,7 @@ export function WorkspacesView() {
 
   const handleCreate = async () => {
     if (!newName.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم المساحة', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Please enter a workspace name', variant: 'destructive' })
       return
     }
     setCreating(true)
@@ -105,12 +105,12 @@ export function WorkspacesView() {
       if (res.ok) {
         const ws = await res.json()
         addWorkspace(ws)
-        toast({ title: 'تم بنجاح', description: 'جارٍ إنشاء مساحة العمل...' })
+        toast({ title: 'Success', description: 'Creating your workspace...' })
 
         // Simulate creation → running
         setTimeout(() => {
           updateWorkspace(ws.id, { status: 'running' })
-          toast({ title: 'تم!', description: `مساحة "${ws.name}" تعمل الآن` })
+          toast({ title: 'Done!', description: `"${ws.name}" is now running` })
         }, 3000)
 
         setDialogOpen(false)
@@ -121,10 +121,10 @@ export function WorkspacesView() {
         setNewDisk('10')
       } else {
         const data = await res.json()
-        toast({ title: 'خطأ', description: data.error || 'فشل إنشاء المساحة', variant: 'destructive' })
+        toast({ title: 'Error', description: data.error || 'Failed to create workspace', variant: 'destructive' })
       }
     } catch {
-      toast({ title: 'خطأ', description: 'حدث خطأ في الاتصال', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
     } finally {
       setCreating(false)
     }
@@ -134,8 +134,8 @@ export function WorkspacesView() {
     const newStatus = ws.status === 'running' ? 'stopped' : 'running'
     updateWorkspace(ws.id, { status: newStatus })
     toast({
-      title: newStatus === 'running' ? 'تم التشغيل' : 'تم الإيقاف',
-      description: `مساحة "${ws.name}" ${newStatus === 'running' ? 'تعمل الآن' : 'تم إيقافها'}`,
+      title: newStatus === 'running' ? 'Started' : 'Stopped',
+      description: `"${ws.name}" ${newStatus === 'running' ? 'is now running' : 'has been stopped'}`,
     })
   }
 
@@ -144,10 +144,10 @@ export function WorkspacesView() {
       const res = await fetch(`/api/workspaces/${id}`, { method: 'DELETE' })
       if (res.ok) {
         removeWorkspace(id)
-        toast({ title: 'تم الحذف', description: `تم حذف مساحة "${name}"` })
+        toast({ title: 'Deleted', description: `"${name}" has been deleted` })
       }
     } catch {
-      toast({ title: 'خطأ', description: 'فشل حذف المساحة', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Failed to delete workspace', variant: 'destructive' })
     }
   }
 
@@ -156,32 +156,32 @@ export function WorkspacesView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold mb-1">مساحات العمل</h1>
-          <p className="text-muted-foreground">إدارة جميع مساحات العمل الخاصة بك</p>
+          <h1 className="text-2xl md:text-3xl font-bold mb-1">Workspaces</h1>
+          <p className="text-muted-foreground">Manage all your workspaces</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-sky-500 hover:bg-sky-600 text-white gap-2">
               <Plus className="h-4 w-4" />
-              مساحة جديدة
+              New Workspace
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md" dir="rtl">
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>إنشاء مساحة عمل جديدة</DialogTitle>
-              <DialogDescription>حدد إعدادات مساحة العمل الجديدة</DialogDescription>
+              <DialogTitle>Create New Workspace</DialogTitle>
+              <DialogDescription>Configure your new workspace settings</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>اسم المساحة</Label>
+                <Label>Workspace Name</Label>
                 <Input
-                  placeholder="مثال: مساحة n8n"
+                  placeholder="e.g. My n8n workspace"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label>المنصة / البرنامج</Label>
+                <Label>Platform / Application</Label>
                 <Select value={newPlatform} onValueChange={setNewPlatform}>
                   <SelectTrigger>
                     <SelectValue />
@@ -224,7 +224,7 @@ export function WorkspacesView() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>قرص (GB)</Label>
+                  <Label>Disk (GB)</Label>
                   <Select value={newDisk} onValueChange={setNewDisk}>
                     <SelectTrigger>
                       <SelectValue />
@@ -243,7 +243,7 @@ export function WorkspacesView() {
                 onClick={handleCreate}
                 disabled={creating}
               >
-                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'إنشاء المساحة'}
+                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Workspace'}
               </Button>
             </div>
           </DialogContent>
@@ -252,12 +252,12 @@ export function WorkspacesView() {
 
       {/* Search */}
       <div className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="بحث في مساحات العمل..."
+          placeholder="Search workspaces..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pr-10"
+          className="pl-10"
         />
       </div>
 
@@ -278,12 +278,12 @@ export function WorkspacesView() {
               <Box className="h-8 w-8 text-sky-400" />
             </div>
             <h3 className="font-semibold text-lg mb-1">
-              {search ? 'لا توجد نتائج' : 'لا توجد مساحات عمل'}
+              {search ? 'No results found' : 'No workspaces yet'}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               {search
-                ? 'جرّب البحث بكلمات مختلفة'
-                : 'ابدأ بإنشاء أول مساحة عمل لك'}
+                ? 'Try different search terms'
+                : 'Create your first workspace to get started'}
             </p>
             {!search && (
               <Button
@@ -291,7 +291,7 @@ export function WorkspacesView() {
                 onClick={() => setDialogOpen(true)}
               >
                 <Plus className="h-4 w-4" />
-                إنشاء مساحة عمل
+                Create Workspace
               </Button>
             )}
           </CardContent>
@@ -320,7 +320,7 @@ export function WorkspacesView() {
                         {ws.name}
                       </button>
                       <p className="text-xs text-muted-foreground">
-                        {ws.platform ? platformOptions.find((p) => p.value === ws.platform)?.label || ws.platform : 'عام'}
+                        {ws.platform ? platformOptions.find((p) => p.value === ws.platform)?.label || ws.platform : 'General'}
                       </p>
                     </div>
                   </div>
@@ -337,12 +337,12 @@ export function WorkspacesView() {
                     }
                   >
                     {ws.status === 'running'
-                      ? 'يعمل'
+                      ? 'Running'
                       : ws.status === 'stopped'
-                      ? 'متوقف'
+                      ? 'Stopped'
                       : ws.status === 'creating'
-                      ? 'جارٍ الإنشاء'
-                      : 'خطأ'}
+                      ? 'Creating'
+                      : 'Error'}
                   </Badge>
                 </div>
 
@@ -357,7 +357,7 @@ export function WorkspacesView() {
                     <p className="font-semibold text-sm">{(Number(ws.ram) / 1024).toFixed(0)} GB</p>
                   </div>
                   <div className="rounded-lg bg-muted/50 p-2 text-center">
-                    <p className="text-xs text-muted-foreground">قرص</p>
+                    <p className="text-xs text-muted-foreground">Disk</p>
                     <p className="font-semibold text-sm">{ws.disk} GB</p>
                   </div>
                 </div>
@@ -374,12 +374,12 @@ export function WorkspacesView() {
                     {ws.status === 'running' ? (
                       <>
                         <Square className="h-3.5 w-3.5" />
-                        إيقاف
+                        Stop
                       </>
                     ) : (
                       <>
                         <Play className="h-3.5 w-3.5" />
-                        تشغيل
+                        Start
                       </>
                     )}
                   </Button>

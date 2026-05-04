@@ -3,97 +3,97 @@
 import { useAppStore } from '@/store/useAppStore'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Check, ArrowLeft } from 'lucide-react'
+import { Check, ArrowRight } from 'lucide-react'
 
 const plans = [
   {
-    name: 'مجاني',
+    name: 'Free',
     price: '0',
-    period: '/شهرياً',
-    description: 'مثالي للتجربة والبدء',
+    period: '/month',
+    description: 'Perfect for trying out',
     color: 'from-slate-500 to-slate-600',
     features: [
-      'مساحة عمل واحدة',
+      '1 Workspace',
       '1 vCPU',
       '1 GB RAM',
-      '10 GB قرص صلب',
-      'دعم عبر البريد',
+      '10 GB Disk',
+      'Email Support',
     ],
-    cta: 'ابدأ مجاناً',
+    cta: 'Get Started Free',
     popular: false,
   },
   {
-    name: 'أساسي',
+    name: 'Basic',
     price: '9',
-    period: '/شهرياً',
-    description: 'للمشاريع الصغيرة',
+    period: '/month',
+    description: 'For small projects',
     color: 'from-sky-500 to-cyan-500',
     features: [
-      '3 مساحات عمل',
+      '3 Workspaces',
       '2 vCPU',
       '4 GB RAM',
-      '50 GB قرص صلب',
-      'دعم على مدار الساعة',
-      'نسخ احتياطي يومي',
+      '50 GB Disk',
+      '24/7 Support',
+      'Daily Backups',
     ],
-    cta: 'اشترك الآن',
+    cta: 'Subscribe Now',
     popular: true,
   },
   {
-    name: 'احترافي',
+    name: 'Pro',
     price: '29',
-    period: '/شهرياً',
-    description: 'للفرق المتنامية',
+    period: '/month',
+    description: 'For growing teams',
     color: 'from-violet-500 to-purple-500',
     features: [
-      '10 مساحات عمل',
+      '10 Workspaces',
       '4 vCPU',
       '16 GB RAM',
-      '200 GB قرص صلب',
-      'دعم أولوية عالية',
-      'نسخ احتياطي كل 6 ساعات',
-      'نطاق فرعي خاص',
+      '200 GB Disk',
+      'Priority Support',
+      'Backups every 6 hours',
+      'Custom Subdomain',
     ],
-    cta: 'اشترك الآن',
+    cta: 'Subscribe Now',
     popular: false,
   },
   {
-    name: 'أعمال',
+    name: 'Business',
     price: '59',
-    period: '/شهرياً',
-    description: 'للشركات المتوسطة',
+    period: '/month',
+    description: 'For medium companies',
     color: 'from-amber-500 to-orange-500',
     features: [
-      '25 مساحة عمل',
+      '25 Workspaces',
       '8 vCPU',
       '32 GB RAM',
-      '500 GB قرص صلب',
-      'مدير حساب مخصص',
-      'نسخ احتياطي كل ساعة',
-      'نطاق فرعي خاص',
-      'SLA مضمون 99.9%',
+      '500 GB Disk',
+      'Dedicated Account Manager',
+      'Hourly Backups',
+      'Custom Subdomain',
+      '99.9% SLA Guaranteed',
     ],
-    cta: 'اشترك الآن',
+    cta: 'Subscribe Now',
     popular: false,
   },
   {
-    name: 'مؤسسات',
+    name: 'Enterprise',
     price: '99',
-    period: '/شهرياً',
-    description: 'للمؤسسات الكبيرة',
+    period: '/month',
+    description: 'For large organizations',
     color: 'from-emerald-500 to-teal-500',
     features: [
-      'مساحات عمل غير محدودة',
+      'Unlimited Workspaces',
       '16 vCPU',
       '64 GB RAM',
-      '1 TB قرص صلب',
-      'فريق دعم مخصص',
-      'نسخ احتياطي مستمر',
-      'نطاق مخصص',
-      'SLA مضمون 99.99%',
-      'تكامل API متقدم',
+      '1 TB Disk',
+      'Dedicated Support Team',
+      'Continuous Backups',
+      'Custom Domain',
+      '99.99% SLA Guaranteed',
+      'Advanced API Integration',
     ],
-    cta: 'تواصل معنا',
+    cta: 'Contact Us',
     popular: false,
   },
 ]
@@ -111,13 +111,13 @@ export function PricingSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            خطط{' '}
-            <span className="bg-gradient-to-l from-sky-400 to-cyan-400 bg-clip-text text-transparent">
-              مرنة
+            Flexible{' '}
+            <span className="bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">
+              Plans
             </span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            اختر الخطة المناسبة لاحتياجاتك. يمكنك الترقية أو التغيير في أي وقت.
+            Choose the plan that fits your needs. Upgrade or change anytime.
           </p>
         </motion.div>
 
@@ -138,7 +138,7 @@ export function PricingSection() {
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="rounded-full bg-sky-500 px-3 py-1 text-xs font-medium text-white">
-                    الأكثر شعبية
+                    Most Popular
                   </span>
                 </div>
               )}
@@ -177,7 +177,7 @@ export function PricingSection() {
                 }}
               >
                 {plan.cta}
-                {!isAuthenticated && <ArrowLeft className="h-3.5 w-3.5 mr-1" />}
+                {!isAuthenticated && <ArrowRight className="h-3.5 w-3.5 ml-1" />}
               </Button>
             </motion.div>
           ))}

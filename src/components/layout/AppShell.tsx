@@ -38,7 +38,7 @@ export function AppShell() {
   const ViewComponent = viewComponents[currentView]
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="min-h-screen bg-background text-foreground" dir="ltr">
       {showAppLayout && <Header />}
       {showAppLayout && !isMobile && <DesktopSidebar />}
 
@@ -47,7 +47,7 @@ export function AppShell() {
           showAppLayout
             ? isMobile
               ? 'pt-14 pb-20'
-              : 'mr-64 pt-14'
+              : 'ml-64 pt-14'
             : ''
         }
       >

@@ -1,33 +1,33 @@
 import type { Metadata, Viewport } from "next";
-import { Cairo } from "next/font/google";
+import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-const cairo = Cairo({
-  variable: "--font-cairo",
-  subsets: ["arabic", "latin"],
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "كلاود سبيس | مساحات عمل سحابية معزولة",
-  description: "منصة سحابية لتأجير مساحات عمل Docker معزولة بالكامل. شغّل أي برنامج مفتوح المصدر بموارد مخصصة.",
-  keywords: ["سحابية", "Docker", "مساحة عمل", "VPS", "حاويات", "n8n", "WordPress"],
+  title: "CloudSpace | Isolated Cloud Workspaces",
+  description: "Cloud platform for renting fully isolated Docker workspaces with dedicated resources. Run any open-source application of your choice.",
+  keywords: ["cloud", "Docker", "workspace", "VPS", "containers", "n8n", "WordPress"],
   authors: [{ name: "CloudSpace" }],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "كلاود سبيس",
+    title: "CloudSpace",
   },
   icons: {
     icon: "/logo.svg",
     apple: "/logo.svg",
   },
   openGraph: {
-    title: "كلاود سبيس | مساحات عمل سحابية",
-    description: "احصل على حاويات Docker معزولة بالكامل مع موارد مخصصة",
+    title: "CloudSpace | Cloud Workspaces",
+    description: "Get fully isolated Docker containers with dedicated resources",
     type: "website",
   },
 };
@@ -46,9 +46,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning className="dark">
+    <html lang="en" dir="ltr" suppressHydrationWarning className="dark">
       <body
-        className={`${cairo.variable} antialiased font-[family-name:var(--font-cairo)] bg-background text-foreground`}
+        className={`${inter.variable} antialiased font-[family-name:var(--font-inter)] bg-background text-foreground`}
       >
         <ThemeProvider
           attribute="class"

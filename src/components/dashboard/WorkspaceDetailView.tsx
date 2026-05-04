@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  ArrowRight,
+  ArrowLeft,
   Play,
   Square,
   RotateCw,
@@ -67,8 +67,8 @@ export function WorkspaceDetailView() {
     const newStatus = workspace.status === 'running' ? 'stopped' : 'running'
     updateWorkspace(workspace.id, { status: newStatus })
     toast({
-      title: newStatus === 'running' ? 'تم التشغيل' : 'تم الإيقاف',
-      description: `مساحة "${workspace.name}" ${newStatus === 'running' ? 'تعمل الآن' : 'تم إيقافها'}`,
+      title: newStatus === 'running' ? 'Started' : 'Stopped',
+      description: `"${workspace.name}" ${newStatus === 'running' ? 'is now running' : 'has been stopped'}`,
     })
     if (newStatus === 'running') {
       setUsage({ cpu: Math.floor(Math.random() * 30) + 10, ram: Math.floor(Math.random() * 40) + 20, disk: Math.floor(Math.random() * 20) + 5 })
@@ -79,10 +79,10 @@ export function WorkspaceDetailView() {
 
   const handleRestart = () => {
     updateWorkspace(workspace.id, { status: 'creating' })
-    toast({ title: 'إعادة تشغيل', description: 'جارٍ إعادة تشغيل مساحة العمل...' })
+    toast({ title: 'Restarting', description: 'Restarting your workspace...' })
     setTimeout(() => {
       updateWorkspace(workspace.id, { status: 'running' })
-      toast({ title: 'تم!', description: 'تم إعادة تشغيل مساحة العمل بنجاح' })
+      toast({ title: 'Done!', description: 'Workspace restarted successfully' })
     }, 3000)
   }
 
@@ -94,10 +94,10 @@ export function WorkspaceDetailView() {
   }
 
   const statusLabels: Record<string, string> = {
-    running: 'يعمل',
-    stopped: 'متوقف',
-    creating: 'جارٍ الإنشاء',
-    error: 'خطأ',
+    running: 'Running',
+    stopped: 'Stopped',
+    creating: 'Creating',
+    error: 'Error',
   }
 
   return (
@@ -107,8 +107,8 @@ export function WorkspaceDetailView() {
         onClick={() => setView('workspaces')}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
       >
-        <ArrowRight className="h-4 w-4" />
-        العودة لمساحات العمل
+        <ArrowLeft className="h-4 w-4" />
+        Back to Workspaces
       </button>
 
       {/* Header */}
@@ -120,13 +120,13 @@ export function WorkspaceDetailView() {
           <div>
             <h1 className="text-2xl font-bold">{workspace.name}</h1>
             <p className="text-sm text-muted-foreground">
-              {workspace.platform || 'عام'} · تم الإنشاء {new Date(workspace.createdAt).toLocaleDateString('ar-SA')}
+              {workspace.platform || 'General'} · Created {new Date(workspace.createdAt).toLocaleDateString('en-US')}
             </p>
           </div>
         </div>
         <Badge variant="outline" className={statusColors[workspace.status]}>
           {workspace.status === 'creating' && (
-            <span className="animate-pulse mr-1">●</span>
+            <span className="animate-pulse ml-1">●</span>
           )}
           {statusLabels[workspace.status]}
         </Badge>
@@ -141,20 +141,20 @@ export function WorkspaceDetailView() {
                 <Cpu className="h-5 w-5 text-violet-400" />
               </div>
               <div>
-                <p className="font-semibold text-sm">المعالج (CPU)</p>
+                <p className="font-semibold text-sm">CPU</p>
                 <p className="text-xs text-muted-foreground">
-                  {usage.cpu}% من {workspace.cpu} vCPU
+                  {usage.cpu}% of {workspace.cpu} vCPU
                 </p>
               </div>
             </div>
             <div className="space-y-1.5">
               <div className="h-2.5 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-l from-violet-500 to-violet-400 transition-all duration-1000"
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-violet-400 transition-all duration-1000"
                   style={{ width: `${usage.cpu}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground text-left" dir="ltr">
+              <p className="text-xs text-muted-foreground text-right">
                 {usage.cpu}%
               </p>
             </div>
@@ -168,20 +168,20 @@ export function WorkspaceDetailView() {
                 <MemoryStick className="h-5 w-5 text-amber-400" />
               </div>
               <div>
-                <p className="font-semibold text-sm">الذاكرة (RAM)</p>
+                <p className="font-semibold text-sm">Memory (RAM)</p>
                 <p className="text-xs text-muted-foreground">
-                  {usage.ram}% من {(Number(workspace.ram) / 1024).toFixed(0)} GB
+                  {usage.ram}% of {(Number(workspace.ram) / 1024).toFixed(0)} GB
                 </p>
               </div>
             </div>
             <div className="space-y-1.5">
               <div className="h-2.5 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-l from-amber-500 to-amber-400 transition-all duration-1000"
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-1000"
                   style={{ width: `${usage.ram}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground text-left" dir="ltr">
+              <p className="text-xs text-muted-foreground text-right">
                 {usage.ram}%
               </p>
             </div>
@@ -195,20 +195,20 @@ export function WorkspaceDetailView() {
                 <HardDrive className="h-5 w-5 text-sky-400" />
               </div>
               <div>
-                <p className="font-semibold text-sm">التخزين (Disk)</p>
+                <p className="font-semibold text-sm">Storage (Disk)</p>
                 <p className="text-xs text-muted-foreground">
-                  {usage.disk}% من {workspace.disk} GB
+                  {usage.disk}% of {workspace.disk} GB
                 </p>
               </div>
             </div>
             <div className="space-y-1.5">
               <div className="h-2.5 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-l from-sky-500 to-sky-400 transition-all duration-1000"
+                  className="h-full rounded-full bg-gradient-to-r from-sky-500 to-sky-400 transition-all duration-1000"
                   style={{ width: `${usage.disk}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground text-left" dir="ltr">
+              <p className="text-xs text-muted-foreground text-right">
                 {usage.disk}%
               </p>
             </div>
@@ -221,7 +221,7 @@ export function WorkspaceDetailView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Activity className="h-5 w-5 text-muted-foreground" />
-            إجراءات
+            Actions
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -239,12 +239,12 @@ export function WorkspaceDetailView() {
               {workspace.status === 'running' ? (
                 <>
                   <Square className="h-4 w-4" />
-                  إيقاف
+                  Stop
                 </>
               ) : (
                 <>
                   <Play className="h-4 w-4" />
-                  تشغيل
+                  Start
                 </>
               )}
             </Button>
@@ -255,12 +255,12 @@ export function WorkspaceDetailView() {
               disabled={workspace.status === 'creating'}
             >
               <RotateCw className="h-4 w-4" />
-              إعادة تشغيل
+              Restart
             </Button>
             {workspace.url && (
               <Button variant="outline" className="gap-2">
                 <ExternalLink className="h-4 w-4" />
-                <span>فتح الرابط</span>
+                <span>Open URL</span>
               </Button>
             )}
             <Button
@@ -268,11 +268,11 @@ export function WorkspaceDetailView() {
               className="gap-2"
               onClick={() => {
                 navigator.clipboard.writeText(workspace.id)
-                toast({ title: 'تم النسخ', description: 'تم نسخ معرف المساحة' })
+                toast({ title: 'Copied', description: 'Workspace ID copied to clipboard' })
               }}
             >
               <Copy className="h-4 w-4" />
-              نسخ المعرف
+              Copy ID
             </Button>
           </div>
         </CardContent>
@@ -281,25 +281,25 @@ export function WorkspaceDetailView() {
       {/* Details */}
       <Card className="border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">تفاصيل المساحة</CardTitle>
+          <CardTitle className="text-lg">Workspace Details</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">المعالج</p>
+              <p className="text-xs text-muted-foreground mb-1">Processor</p>
               <p className="font-semibold">{workspace.cpu} vCPU</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">الذاكرة</p>
+              <p className="text-xs text-muted-foreground mb-1">Memory</p>
               <p className="font-semibold">{(Number(workspace.ram) / 1024).toFixed(0)} GB</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">التخزين</p>
+              <p className="text-xs text-muted-foreground mb-1">Storage</p>
               <p className="font-semibold">{workspace.disk} GB</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">المعرف</p>
-              <p className="font-mono text-xs truncate" dir="ltr">{workspace.id}</p>
+              <p className="text-xs text-muted-foreground mb-1">ID</p>
+              <p className="font-mono text-xs truncate">{workspace.id}</p>
             </div>
           </div>
         </CardContent>

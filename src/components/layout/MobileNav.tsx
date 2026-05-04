@@ -12,11 +12,11 @@ import {
 import type { ViewType } from '@/store/useAppStore'
 
 const tabs: { key: ViewType; label: string; icon: React.ElementType }[] = [
-  { key: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard },
-  { key: 'workspaces', label: 'المساحات', icon: Box },
-  { key: 'pricing', label: 'الأسعار', icon: CreditCard },
-  { key: 'settings', label: 'الإعدادات', icon: Settings },
-  { key: 'support', label: 'المساعدة', icon: HelpCircle },
+  { key: 'dashboard', label: 'Home', icon: LayoutDashboard },
+  { key: 'workspaces', label: 'Spaces', icon: Box },
+  { key: 'pricing', label: 'Plans', icon: CreditCard },
+  { key: 'settings', label: 'Settings', icon: Settings },
+  { key: 'support', label: 'Help', icon: HelpCircle },
 ]
 
 export function MobileNav() {

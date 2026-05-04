@@ -1,13 +1,13 @@
 {
-  "name": "كلاود سبيس",
-  "short_name": "كلاود",
-  "description": "منصة سحابية لتأجير مساحات عمل Docker معزولة",
+  "name": "CloudSpace",
+  "short_name": "Cloud",
+  "description": "Cloud platform for renting fully isolated Docker workspaces",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "dir": "rtl",
-  "lang": "ar",
+  "dir": "ltr",
+  "lang": "en",
   "orientation": "portrait",
   "icons": [
     {

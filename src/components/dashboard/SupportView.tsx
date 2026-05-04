@@ -21,28 +21,28 @@ import { useToast } from '@/hooks/use-toast'
 
 const faqs = [
   {
-    q: 'كيف أنشئ مساحة عمل جديدة؟',
-    a: 'اذهب إلى صفحة "مساحات العمل" وانقر على "مساحة جديدة". اختر المنصة والموارد ثم اضغط "إنشاء".',
+    q: 'How do I create a new workspace?',
+    a: 'Go to the "Workspaces" page and click "New Workspace". Choose your platform and resources, then click "Create".',
   },
   {
-    q: 'كيف أغير خطتي؟',
-    a: 'اذهب إلى صفحة "الأسعار" واختر الخطة الجديدة. سيتم تطبيق التغيير فوراً.',
+    q: 'How do I change my plan?',
+    a: 'Go to the "Pricing" page and select your new plan. The change will take effect immediately.',
   },
   {
-    q: 'لا أستطيع الوصول لمساحة العمل',
-    a: 'تأكد أن المساحة تعمل. إذا استمرت المشكلة، تواصل مع الدعم الفني.',
+    q: 'I can\'t access my workspace',
+    a: 'Make sure the workspace is running. If the problem persists, contact our support team.',
   },
   {
-    q: 'كيف أحصل على فاتورة؟',
-    a: 'اذهب إلى صفحة "الفواتير" واضغط على زر التحميل بجانب أي فاتورة.',
+    q: 'How do I get an invoice?',
+    a: 'Go to the "Billing" page and click the download button next to any invoice.',
   },
 ]
 
 const categories = [
-  { icon: HelpCircle, label: 'سؤال عام', color: 'text-sky-400 bg-sky-500/10' },
-  { icon: Bug, label: 'مشكلة تقنية', color: 'text-red-400 bg-red-500/10' },
-  { icon: BookOpen, label: 'طلب ميزة', color: 'text-emerald-400 bg-emerald-500/10' },
-  { icon: MessageSquare, label: 'أخرى', color: 'text-violet-400 bg-violet-500/10' },
+  { icon: HelpCircle, label: 'General Question', color: 'text-sky-400 bg-sky-500/10' },
+  { icon: Bug, label: 'Technical Issue', color: 'text-red-400 bg-red-500/10' },
+  { icon: BookOpen, label: 'Feature Request', color: 'text-emerald-400 bg-emerald-500/10' },
+  { icon: MessageSquare, label: 'Other', color: 'text-violet-400 bg-violet-500/10' },
 ]
 
 export function SupportView() {
@@ -55,12 +55,12 @@ export function SupportView() {
 
   const handleSend = () => {
     if (!subject.trim() || !message.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى ملء جميع الحقول', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Please fill in all fields', variant: 'destructive' })
       return
     }
     setSending(true)
     setTimeout(() => {
-      toast({ title: 'تم الإرسال', description: 'سنتواصل معك في أقرب وقت' })
+      toast({ title: 'Sent', description: 'We will get back to you as soon as possible' })
       setSubject('')
       setMessage('')
       setSending(false)
@@ -70,8 +70,8 @@ export function SupportView() {
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">المساعدة والدعم</h1>
-        <p className="text-muted-foreground">كيف يمكننا مساعدتك؟</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-1">Help & Support</h1>
+        <p className="text-muted-foreground">How can we help you?</p>
       </div>
 
       {/* Quick Links */}
@@ -97,7 +97,7 @@ export function SupportView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-muted-foreground" />
-            الأسئلة الشائعة
+            Frequently Asked Questions
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -105,14 +105,14 @@ export function SupportView() {
             <div key={i} className="rounded-lg border border-border">
               <button
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                className="flex items-center justify-between w-full p-3 text-right"
+                className="flex items-center justify-between w-full p-3 text-left"
               >
                 <span className="text-sm font-medium">{faq.q}</span>
                 <Badge
                   variant="secondary"
                   className={`text-[10px] ${openFaq === i ? 'bg-sky-500/10 text-sky-400' : ''}`}
                 >
-                  {openFaq === i ? 'إخفاء' : 'عرض'}
+                  {openFaq === i ? 'Hide' : 'Show'}
                 </Badge>
               </button>
               {openFaq === i && (
@@ -130,25 +130,25 @@ export function SupportView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Mail className="h-5 w-5 text-muted-foreground" />
-            تواصل معنا
+            Contact Us
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>الموضوع</Label>
+            <Label>Subject</Label>
             <Input
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="موضوع رسالتك"
+              placeholder="Message subject"
               className="bg-background"
             />
           </div>
           <div className="space-y-2">
-            <Label>الرسالة</Label>
+            <Label>Message</Label>
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="اشرح مشكلتك أو استفسارك بالتفصيل..."
+              placeholder="Describe your issue or question in detail..."
               className="bg-background min-h-[120px]"
               rows={5}
             />
@@ -164,10 +164,10 @@ export function SupportView() {
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              إرسال الرسالة
+              Send Message
             </Button>
             <span className="text-xs text-muted-foreground">
-              سنرد خلال 24 ساعة عمل
+              We respond within 24 business hours
             </span>
           </div>
         </CardContent>
@@ -177,12 +177,12 @@ export function SupportView() {
       <div className="flex flex-wrap gap-3">
         <Button variant="outline" className="gap-2" onClick={() => window.open('#', '_blank')}>
           <BookOpen className="h-4 w-4" />
-          التوثيق
+          Documentation
           <ExternalLink className="h-3 w-3" />
         </Button>
         <Button variant="outline" className="gap-2" onClick={() => window.open('#', '_blank')}>
           <MessageSquare className="h-4 w-4" />
-          مجتمع Discord
+          Discord Community
           <ExternalLink className="h-3 w-3" />
         </Button>
       </div>

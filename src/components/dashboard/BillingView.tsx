@@ -34,9 +34,9 @@ export function BillingView() {
       } catch {
         // Generate mock invoices
         setInvoices([
-          { id: 'inv-001', amount: 9, plan: 'أساسي', status: 'paid', date: new Date().toISOString() },
-          { id: 'inv-002', amount: 9, plan: 'أساسي', status: 'paid', date: new Date(Date.now() - 30 * 86400000).toISOString() },
-          { id: 'inv-003', amount: 0, plan: 'مجانية', status: 'paid', date: new Date(Date.now() - 60 * 86400000).toISOString() },
+          { id: 'inv-001', amount: 9, plan: 'Basic', status: 'paid', date: new Date().toISOString() },
+          { id: 'inv-002', amount: 9, plan: 'Basic', status: 'paid', date: new Date(Date.now() - 30 * 86400000).toISOString() },
+          { id: 'inv-003', amount: 0, plan: 'Free', status: 'paid', date: new Date(Date.now() - 60 * 86400000).toISOString() },
         ])
       } finally {
         setLoading(false)
@@ -46,17 +46,17 @@ export function BillingView() {
   }, [])
 
   const planLabels: Record<string, string> = {
-    free: 'مجانية',
-    basic: 'أساسي',
-    pro: 'احترافي',
-    business: 'أعمال',
-    enterprise: 'مؤسسات',
+    free: 'Free',
+    basic: 'Basic',
+    pro: 'Pro',
+    business: 'Business',
+    enterprise: 'Enterprise',
   }
 
   const statusLabels: Record<string, string> = {
-    paid: 'مدفوعة',
-    pending: 'معلقة',
-    failed: 'فاشلة',
+    paid: 'Paid',
+    pending: 'Pending',
+    failed: 'Failed',
   }
 
   const statusColors: Record<string, string> = {
@@ -66,14 +66,14 @@ export function BillingView() {
   }
 
   const handleDownload = (id: string) => {
-    toast({ title: 'جارٍ التحميل', description: `جارٍ تحميل الفاتورة ${id}` })
+    toast({ title: 'Downloading', description: `Downloading invoice ${id}` })
   }
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">الفواتير والمدفوعات</h1>
-        <p className="text-muted-foreground">إدارة فواتيرك وطرق الدفع</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-1">Billing & Payments</h1>
+        <p className="text-muted-foreground">Manage your invoices and payment methods</p>
       </div>
 
       {/* Current plan summary */}
@@ -85,14 +85,14 @@ export function BillingView() {
                 <CreditCard className="h-7 w-7 text-sky-400" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">الخطة الحالية</p>
+                <p className="text-sm text-muted-foreground">Current Plan</p>
                 <p className="text-2xl font-bold">
                   {planLabels[user?.plan || 'free'] || user?.plan}
                 </p>
               </div>
             </div>
-            <div className="text-left" dir="ltr">
-              <p className="text-sm text-muted-foreground">التكلفة الشهرية</p>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Monthly Cost</p>
               <p className="text-2xl font-bold">
                 $
                 {user?.plan === 'free'
@@ -115,7 +115,7 @@ export function BillingView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-muted-foreground" />
-            طريقة الدفع
+            Payment Method
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -126,11 +126,11 @@ export function BillingView() {
               </div>
               <div>
                 <p className="text-sm font-medium">**** **** **** 4242</p>
-                <p className="text-xs text-muted-foreground">تنتهي 12/2025</p>
+                <p className="text-xs text-muted-foreground">Expires 12/2025</p>
               </div>
             </div>
             <Button variant="outline" size="sm">
-              تعديل
+              Edit
             </Button>
           </div>
         </CardContent>
@@ -141,7 +141,7 @@ export function BillingView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Receipt className="h-5 w-5 text-muted-foreground" />
-            سجل الفواتير
+            Invoice History
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -154,7 +154,7 @@ export function BillingView() {
           ) : invoices.length === 0 ? (
             <div className="text-center py-8">
               <Receipt className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">لا توجد فواتير بعد</p>
+              <p className="text-sm text-muted-foreground">No invoices yet</p>
             </div>
           ) : (
             <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -171,7 +171,7 @@ export function BillingView() {
                       <p className="font-medium text-sm">{inv.plan}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <CalendarDays className="h-3 w-3" />
-                        {new Date(inv.date).toLocaleDateString('ar-SA')}
+                        {new Date(inv.date).toLocaleDateString('en-US')}
                       </div>
                     </div>
                   </div>

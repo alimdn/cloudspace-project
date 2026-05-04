@@ -15,7 +15,7 @@ import {
   HardDrive,
   MemoryStick,
   TrendingUp,
-  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react'
 
 export function DashboardView() {
@@ -46,11 +46,11 @@ export function DashboardView() {
   const totalRam = workspaces.reduce((acc, w) => acc + Number(w.ram), 0)
 
   const planLabels: Record<string, string> = {
-    free: 'مجانية',
-    basic: 'أساسي',
-    pro: 'احترافي',
-    business: 'أعمال',
-    enterprise: 'مؤسسات',
+    free: 'Free',
+    basic: 'Basic',
+    pro: 'Pro',
+    business: 'Business',
+    enterprise: 'Enterprise',
   }
 
   return (
@@ -58,10 +58,10 @@ export function DashboardView() {
       {/* Welcome */}
       <div>
         <h1 className="text-2xl md:text-3xl font-bold mb-1">
-          مرحباً، {user?.name} 👋
+          Hello, {user?.name} 👋
         </h1>
         <p className="text-muted-foreground">
-          إليك نظرة عامة على مساحات العمل الخاصة بك
+          Here&apos;s an overview of your workspaces
         </p>
       </div>
 
@@ -81,11 +81,11 @@ export function DashboardView() {
                   <Box className="h-5 w-5 text-sky-400" />
                 </div>
                 <Badge variant="secondary" className="bg-sky-500/10 text-sky-400">
-                  {workspaces.length} مساحة
+                  {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''}
                 </Badge>
               </div>
               <p className="text-2xl font-bold">{workspaces.length}</p>
-              <p className="text-xs text-muted-foreground">إجمالي المساحات</p>
+              <p className="text-xs text-muted-foreground">Total Workspaces</p>
             </CardContent>
           </Card>
 
@@ -96,11 +96,11 @@ export function DashboardView() {
                   <Activity className="h-5 w-5 text-emerald-400" />
                 </div>
                 <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400">
-                  نشط
+                  Active
                 </Badge>
               </div>
               <p className="text-2xl font-bold">{runningCount}</p>
-              <p className="text-xs text-muted-foreground">مساحات تعمل</p>
+              <p className="text-xs text-muted-foreground">Running</p>
             </CardContent>
           </Card>
 
@@ -112,7 +112,7 @@ export function DashboardView() {
                 </div>
               </div>
               <p className="text-2xl font-bold">{totalCpu}</p>
-              <p className="text-xs text-muted-foreground">إجمالي vCPU</p>
+              <p className="text-xs text-muted-foreground">Total vCPU</p>
             </CardContent>
           </Card>
 
@@ -124,7 +124,7 @@ export function DashboardView() {
                 </div>
               </div>
               <p className="text-2xl font-bold">{(totalRam / 1024).toFixed(1)} GB</p>
-              <p className="text-xs text-muted-foreground">إجمالي الذاكرة</p>
+              <p className="text-xs text-muted-foreground">Total Memory</p>
             </CardContent>
           </Card>
         </div>
@@ -134,7 +134,7 @@ export function DashboardView() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2 border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">إجراءات سريعة</CardTitle>
+            <CardTitle className="text-lg">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
@@ -143,8 +143,8 @@ export function DashboardView() {
               onClick={() => setView('workspaces')}
             >
               <Plus className="h-5 w-5 text-sky-400" />
-              <span>إنشاء مساحة عمل جديدة</span>
-              <ArrowLeft className="h-4 w-4 mr-auto text-muted-foreground" />
+              <span>Create New Workspace</span>
+              <ArrowRight className="h-4 w-4 ml-auto text-muted-foreground" />
             </Button>
             <Button
               variant="outline"
@@ -152,8 +152,8 @@ export function DashboardView() {
               onClick={() => setView('workspaces')}
             >
               <Box className="h-5 w-5 text-emerald-400" />
-              <span>إدارة المساحات الحالية</span>
-              <ArrowLeft className="h-4 w-4 mr-auto text-muted-foreground" />
+              <span>Manage Existing Workspaces</span>
+              <ArrowRight className="h-4 w-4 ml-auto text-muted-foreground" />
             </Button>
             <Button
               variant="outline"
@@ -161,15 +161,15 @@ export function DashboardView() {
               onClick={() => setView('pricing')}
             >
               <TrendingUp className="h-5 w-5 text-violet-400" />
-              <span>ترقية خطتك الحالية</span>
-              <ArrowLeft className="h-4 w-4 mr-auto text-muted-foreground" />
+              <span>Upgrade Your Plan</span>
+              <ArrowRight className="h-4 w-4 ml-auto text-muted-foreground" />
             </Button>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-gradient-to-b from-sky-500/5 to-transparent">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">خطتك الحالية</CardTitle>
+            <CardTitle className="text-lg">Current Plan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
@@ -181,7 +181,7 @@ export function DashboardView() {
                   {planLabels[user?.plan || 'free'] || user?.plan}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {user?.plan === 'free' ? 'خطة مجانية' : 'اشتراك نشط'}
+                  {user?.plan === 'free' ? 'Free plan' : 'Active subscription'}
                 </p>
               </div>
             </div>
@@ -190,7 +190,7 @@ export function DashboardView() {
               className="w-full border-sky-500/30 text-sky-400 hover:bg-sky-500/10"
               onClick={() => setView('pricing')}
             >
-              {user?.plan === 'free' ? 'ترقية الخطة' : 'تغيير الخطة'}
+              {user?.plan === 'free' ? 'Upgrade Plan' : 'Change Plan'}
             </Button>
           </CardContent>
         </Card>
@@ -201,10 +201,10 @@ export function DashboardView() {
         <Card className="border-border">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">آخر مساحات العمل</CardTitle>
+              <CardTitle className="text-lg">Recent Workspaces</CardTitle>
               <Button variant="ghost" size="sm" onClick={() => setView('workspaces')}>
-                عرض الكل
-                <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+                View All
+                <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Button>
             </div>
           </CardHeader>
@@ -228,10 +228,10 @@ export function DashboardView() {
                           : 'bg-red-500'
                       }`}
                     />
-                    <div className="text-right">
+                    <div className="text-left">
                       <p className="font-medium text-sm">{ws.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {ws.platform || 'عام'} · {ws.cpu} vCPU · {(Number(ws.ram) / 1024).toFixed(0)} GB RAM
+                        {ws.platform || 'General'} · {ws.cpu} vCPU · {(Number(ws.ram) / 1024).toFixed(0)} GB RAM
                       </p>
                     </div>
                   </div>
@@ -245,7 +245,7 @@ export function DashboardView() {
                         : 'bg-amber-500/10 text-amber-400'
                     }
                   >
-                    {ws.status === 'running' ? 'يعمل' : ws.status === 'stopped' ? 'متوقف' : ws.status === 'creating' ? 'جارٍ الإنشاء' : 'خطأ'}
+                    {ws.status === 'running' ? 'Running' : ws.status === 'stopped' ? 'Stopped' : ws.status === 'creating' ? 'Creating' : 'Error'}
                   </Badge>
                 </button>
               ))}

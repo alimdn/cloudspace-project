@@ -10,33 +10,33 @@ import { useToast } from '@/hooks/use-toast'
 const plans = [
   {
     id: 'free',
-    name: 'مجاني',
+    name: 'Free',
     price: '0',
-    features: ['مساحة عمل واحدة', '1 vCPU', '1 GB RAM', '10 GB قرص', 'دعم عبر البريد'],
+    features: ['1 Workspace', '1 vCPU', '1 GB RAM', '10 GB Disk', 'Email Support'],
   },
   {
     id: 'basic',
-    name: 'أساسي',
+    name: 'Basic',
     price: '9',
-    features: ['3 مساحات عمل', '2 vCPU', '4 GB RAM', '50 GB قرص', 'دعم 24/7', 'نسخ احتياطي يومي'],
+    features: ['3 Workspaces', '2 vCPU', '4 GB RAM', '50 GB Disk', '24/7 Support', 'Daily Backups'],
   },
   {
     id: 'pro',
-    name: 'احترافي',
+    name: 'Pro',
     price: '29',
-    features: ['10 مساحات عمل', '4 vCPU', '16 GB RAM', '200 GB قرص', 'دعم أولوية', 'نسخ كل 6 ساعات', 'نطاق فرعي'],
+    features: ['10 Workspaces', '4 vCPU', '16 GB RAM', '200 GB Disk', 'Priority Support', 'Backups every 6 hours', 'Custom Subdomain'],
   },
   {
     id: 'business',
-    name: 'أعمال',
+    name: 'Business',
     price: '59',
-    features: ['25 مساحة عمل', '8 vCPU', '32 GB RAM', '500 GB قرص', 'مدير حساب', 'نسخ كل ساعة', 'نطاق فرعي', 'SLA 99.9%'],
+    features: ['25 Workspaces', '8 vCPU', '32 GB RAM', '500 GB Disk', 'Account Manager', 'Hourly Backups', 'Custom Subdomain', '99.9% SLA'],
   },
   {
     id: 'enterprise',
-    name: 'مؤسسات',
+    name: 'Enterprise',
     price: '99',
-    features: ['مساحات غير محدودة', '16 vCPU', '64 GB RAM', '1 TB قرص', 'فريق دعم مخصص', 'نسخ مستمر', 'نطاق مخصص', 'SLA 99.99%', 'API متقدم'],
+    features: ['Unlimited Workspaces', '16 vCPU', '64 GB RAM', '1 TB Disk', 'Dedicated Support', 'Continuous Backups', 'Custom Domain', '99.99% SLA', 'Advanced API'],
   },
 ]
 
@@ -46,19 +46,19 @@ export function PricingView() {
 
   const handleSubscribe = (planId: string) => {
     if (planId === user?.plan) {
-      toast({ title: 'معلومة', description: 'أنت مشترك بالفعل في هذه الخطة' })
+      toast({ title: 'Info', description: 'You are already subscribed to this plan' })
       return
     }
     // Simulate subscription
     setUser({ ...(user!), plan: planId })
-    toast({ title: 'تم بنجاح!', description: `تم تغيير خطتك إلى ${plans.find(p => p.id === planId)?.name}` })
+    toast({ title: 'Success!', description: `Your plan has been changed to ${plans.find(p => p.id === planId)?.name}` })
   }
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">الأسعار والخطط</h1>
-        <p className="text-muted-foreground">اختر الخطة المناسبة لاحتياجاتك</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-1">Pricing & Plans</h1>
+        <p className="text-muted-foreground">Choose the plan that fits your needs</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -79,14 +79,14 @@ export function PricingView() {
                     <h3 className="font-semibold">{plan.name}</h3>
                     {isCurrent && (
                       <Badge className="bg-sky-500/10 text-sky-400 text-[10px]">
-                        <Star className="h-2.5 w-2.5 mr-0.5" />
-                        الحالية
+                        <Star className="h-2.5 w-2.5 ml-0.5" />
+                        Current
                       </Badge>
                     )}
                   </div>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-3xl font-bold">${plan.price}</span>
-                    <span className="text-xs text-muted-foreground">/شهر</span>
+                    <span className="text-xs text-muted-foreground">/month</span>
                   </div>
                 </div>
 
@@ -109,7 +109,7 @@ export function PricingView() {
                   onClick={() => handleSubscribe(plan.id)}
                   disabled={isCurrent}
                 >
-                  {isCurrent ? 'الخطة الحالية' : 'اشترك'}
+                  {isCurrent ? 'Current Plan' : 'Subscribe'}
                 </Button>
               </CardContent>
             </Card>
@@ -119,12 +119,12 @@ export function PricingView() {
 
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
-          هل تحتاج خطة مخصصة؟{' '}
+          Need a custom plan?{' '}
           <button
             onClick={() => setView('support')}
             className="text-sky-400 hover:text-sky-300 font-medium"
           >
-            تواصل معنا
+            Contact Us
           </button>
         </p>
       </div>

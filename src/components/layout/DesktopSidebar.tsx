@@ -14,19 +14,19 @@ import {
 } from 'lucide-react'
 
 const navItems = [
-  { key: 'dashboard' as const, label: 'لوحة التحكم', icon: LayoutDashboard },
-  { key: 'workspaces' as const, label: 'مساحات العمل', icon: Box },
-  { key: 'pricing' as const, label: 'الأسعار', icon: CreditCard },
-  { key: 'billing' as const, label: 'الفواتير', icon: Receipt },
-  { key: 'settings' as const, label: 'الإعدادات', icon: Settings },
-  { key: 'support' as const, label: 'المساعدة', icon: HelpCircle },
+  { key: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
+  { key: 'workspaces' as const, label: 'Workspaces', icon: Box },
+  { key: 'pricing' as const, label: 'Pricing', icon: CreditCard },
+  { key: 'billing' as const, label: 'Billing', icon: Receipt },
+  { key: 'settings' as const, label: 'Settings', icon: Settings },
+  { key: 'support' as const, label: 'Support', icon: HelpCircle },
 ]
 
 export function DesktopSidebar() {
   const { currentView, user, setView, logout } = useAppStore()
 
   return (
-    <aside className="fixed right-0 top-14 bottom-0 z-40 w-64 border-l border-border bg-card/50 backdrop-blur-sm">
+    <aside className="fixed left-0 top-14 bottom-0 z-40 w-64 border-r border-border bg-card/50 backdrop-blur-sm">
       <div className="flex flex-col h-full">
         {/* Brand */}
         <div className="p-4 border-b border-border">
@@ -34,8 +34,8 @@ export function DesktopSidebar() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/10">
               <Cloud className="h-5 w-5 text-sky-400" />
             </div>
-            <span className="text-lg font-bold bg-gradient-to-l from-sky-400 to-cyan-300 bg-clip-text text-transparent">
-              كلاود سبيس
+            <span className="text-lg font-bold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
+              CloudSpace
             </span>
           </div>
         </div>
@@ -44,7 +44,7 @@ export function DesktopSidebar() {
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-sky-500/20 flex items-center justify-center text-lg font-bold text-sky-400">
-              {user?.name?.charAt(0) || 'م'}
+              {user?.name?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{user?.name}</p>
@@ -53,7 +53,7 @@ export function DesktopSidebar() {
           </div>
           <div className="mt-2">
             <span className="inline-flex items-center rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-medium text-sky-400">
-              الخطة: {user?.plan === 'free' ? 'مجانية' : user?.plan}
+              Plan: {user?.plan === 'free' ? 'Free' : user?.plan?.charAt(0).toUpperCase() + user?.plan?.slice(1)}
             </span>
           </div>
         </div>
@@ -84,7 +84,7 @@ export function DesktopSidebar() {
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
           >
             <LogOut className="h-5 w-5 shrink-0" />
-            تسجيل الخروج
+            Sign Out
           </button>
         </div>
       </div>

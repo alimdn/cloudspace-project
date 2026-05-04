@@ -20,7 +20,7 @@ export function LoginForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) {
-      toast({ title: 'خطأ', description: 'يرجى ملء جميع الحقول', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Please fill in all fields', variant: 'destructive' })
       return
     }
     setLoading(true)
@@ -33,12 +33,12 @@ export function LoginForm() {
       const data = await res.json()
       if (res.ok) {
         setAuthenticated(true, data.user)
-        toast({ title: 'مرحباً!', description: `تم تسجيل الدخول بنجاح` })
+        toast({ title: 'Welcome!', description: 'Successfully signed in' })
       } else {
-        toast({ title: 'خطأ', description: data.error || 'فشل تسجيل الدخول', variant: 'destructive' })
+        toast({ title: 'Error', description: data.error || 'Sign in failed', variant: 'destructive' })
       }
     } catch {
-      toast({ title: 'خطأ', description: 'حدث خطأ في الاتصال', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
     } finally {
       setLoading(false)
     }
@@ -55,21 +55,21 @@ export function LoginForm() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 border border-sky-500/20">
               <Cloud className="h-6 w-6 text-sky-400" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-l from-sky-400 to-cyan-300 bg-clip-text text-transparent">
-              كلاود سبيس
+            <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
+              CloudSpace
             </span>
           </div>
         </div>
 
         <Card className="border-border bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">تسجيل الدخول</CardTitle>
-            <CardDescription>أدخل بياناتك للوصول إلى لوحة التحكم</CardDescription>
+            <CardTitle className="text-2xl">Sign In</CardTitle>
+            <CardDescription>Enter your credentials to access the dashboard</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -77,11 +77,10 @@ export function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-background"
-                  dir="ltr"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">كلمة المرور</Label>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -89,31 +88,30 @@ export function LoginForm() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-background pl-10"
-                    dir="ltr"
+                    className="bg-background pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
               <Button type="submit" className="w-full bg-sky-500 hover:bg-sky-600" disabled={loading}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'تسجيل الدخول'}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign In'}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                ليس لديك حساب؟{' '}
+                Don&apos;t have an account?{' '}
                 <button
                   onClick={() => setView('register')}
                   className="text-sky-400 hover:text-sky-300 font-medium"
                 >
-                  سجل الآن
+                  Sign Up
                 </button>
               </p>
             </div>

@@ -33,15 +33,15 @@ export function RegisterForm() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name || !email || !password || !confirmPassword) {
-      toast({ title: 'خطأ', description: 'يرجى ملء جميع الحقول', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Please fill in all fields', variant: 'destructive' })
       return
     }
     if (password !== confirmPassword) {
-      toast({ title: 'خطأ', description: 'كلمات المرور غير متطابقة', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Passwords do not match', variant: 'destructive' })
       return
     }
     if (password.length < 6) {
-      toast({ title: 'خطأ', description: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Password must be at least 6 characters', variant: 'destructive' })
       return
     }
     setLoading(true)
@@ -54,12 +54,12 @@ export function RegisterForm() {
       const data = await res.json()
       if (res.ok) {
         setAuthenticated(true, data.user)
-        toast({ title: 'مرحباً!', description: 'تم إنشاء حسابك بنجاح' })
+        toast({ title: 'Welcome!', description: 'Your account has been created successfully' })
       } else {
-        toast({ title: 'خطأ', description: data.error || 'فشل إنشاء الحساب', variant: 'destructive' })
+        toast({ title: 'Error', description: data.error || 'Account creation failed', variant: 'destructive' })
       }
     } catch {
-      toast({ title: 'خطأ', description: 'حدث خطأ في الاتصال', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Connection error occurred', variant: 'destructive' })
     } finally {
       setLoading(false)
     }
@@ -76,31 +76,31 @@ export function RegisterForm() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 border border-sky-500/20">
               <Cloud className="h-6 w-6 text-sky-400" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-l from-sky-400 to-cyan-300 bg-clip-text text-transparent">
-              كلاود سبيس
+            <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
+              CloudSpace
             </span>
           </div>
         </div>
 
         <Card className="border-border bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">إنشاء حساب جديد</CardTitle>
-            <CardDescription>انضم إلى آلاف المستخدمين على منصة كلاود سبيس</CardDescription>
+            <CardTitle className="text-2xl">Create Account</CardTitle>
+            <CardDescription>Join thousands of users on CloudSpace</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">الاسم الكامل</Label>
+                <Label htmlFor="name">Full Name</Label>
                 <Input
                   id="name"
-                  placeholder="أحمد محمد"
+                  placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="bg-background"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -108,11 +108,10 @@ export function RegisterForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-background"
-                  dir="ltr"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">كلمة المرور</Label>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -120,13 +119,12 @@ export function RegisterForm() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-background pl-10"
-                    dir="ltr"
+                    className="bg-background pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -146,13 +144,13 @@ export function RegisterForm() {
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {passwordStrength <= 1 ? 'ضعيفة' : passwordStrength <= 2 ? 'متوسطة' : passwordStrength <= 3 ? 'قوية' : 'قوية جداً'}
+                      {passwordStrength <= 1 ? 'Weak' : passwordStrength <= 2 ? 'Fair' : passwordStrength <= 3 ? 'Strong' : 'Very Strong'}
                     </p>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
@@ -160,28 +158,27 @@ export function RegisterForm() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="bg-background"
-                  dir="ltr"
                 />
                 {confirmPassword && password === confirmPassword && (
                   <p className="text-xs text-emerald-500 flex items-center gap-1">
-                    <Check className="h-3 w-3" /> متطابقة
+                    <Check className="h-3 w-3" /> Match
                   </p>
                 )}
               </div>
 
               <Button type="submit" className="w-full bg-sky-500 hover:bg-sky-600" disabled={loading}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'إنشاء الحساب'}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Account'}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                لديك حساب بالفعل؟{' '}
+                Already have an account?{' '}
                 <button
                   onClick={() => setView('login')}
                   className="text-sky-400 hover:text-sky-300 font-medium"
                 >
-                  سجل دخولك
+                  Sign In
                 </button>
               </p>
             </div>

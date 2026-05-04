@@ -3,7 +3,7 @@
 import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
-import { Cloud, ArrowLeft, Play, Shield, Zap } from 'lucide-react'
+import { Cloud, ArrowRight, Play, Shield, Zap } from 'lucide-react'
 
 export function HeroSection() {
   const { setView } = useAppStore()
@@ -26,7 +26,7 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/20 bg-sky-500/10 px-4 py-1.5 mb-8">
             <Zap className="h-3.5 w-3.5 text-sky-400" />
-            <span className="text-sm text-sky-300">منصة سحابية جديدة بالكامل</span>
+            <span className="text-sm text-sky-300">A brand new cloud platform</span>
           </div>
 
           {/* Logo */}
@@ -40,18 +40,18 @@ export function HeroSection() {
 
           {/* Title */}
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            <span className="text-foreground">مساحات عمل</span>
+            <span className="text-foreground">Isolated Cloud</span>
             <br />
-            <span className="bg-gradient-to-l from-sky-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
-              سحابية معزولة
+            <span className="bg-gradient-to-r from-sky-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
+              Workspaces
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            احصل على حاويات Docker معزولة بالكامل مع موارد مخصصة.
+            Get fully isolated Docker containers with dedicated resources.
             <br className="hidden sm:block" />
-            شغّل أي برنامج مفتوح المصدر — n8n، WordPress، قواعد البيانات، والمزيد.
+            Run any open-source app — n8n, WordPress, databases, and more.
           </p>
 
           {/* CTA Buttons */}
@@ -61,8 +61,8 @@ export function HeroSection() {
               className="bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/25 px-8 h-12 text-base gap-2"
               onClick={() => setView('register')}
             >
-              ابدأ مجاناً
-              <ArrowLeft className="h-4 w-4" />
+              Get Started Free
+              <ArrowRight className="h-4 w-4" />
             </Button>
             <Button
               size="lg"
@@ -74,7 +74,7 @@ export function HeroSection() {
               }}
             >
               <Play className="h-4 w-4" />
-              شاهد كيف يعمل
+              See How It Works
             </Button>
           </div>
 
@@ -82,15 +82,15 @@ export function HeroSection() {
           <div className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-sky-400" />
-              <span>تشفير كامل</span>
+              <span>Full Encryption</span>
             </div>
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-sky-400" />
-              <span>تشغيل فوري</span>
+              <span>Instant Setup</span>
             </div>
             <div className="flex items-center gap-2">
               <Cloud className="h-4 w-4 text-sky-400" />
-              <span>99.9% وقت تشغيل</span>
+              <span>99.9% Uptime</span>
             </div>
           </div>
         </motion.div>
@@ -103,10 +103,10 @@ export function HeroSection() {
           className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
         >
           {[
-            { value: '+10,000', label: 'مستخدم نشط' },
-            { value: '+50,000', label: 'حاوية مُنشأة' },
-            { value: '99.9%', label: 'وقت التشغيل' },
-            { value: '24/7', label: 'دعم فني' },
+            { value: '10,000+', label: 'Active Users' },
+            { value: '50,000+', label: 'Containers Created' },
+            { value: '99.9%', label: 'Uptime' },
+            { value: '24/7', label: 'Support' },
           ].map((stat) => (
             <div
               key={stat.label}

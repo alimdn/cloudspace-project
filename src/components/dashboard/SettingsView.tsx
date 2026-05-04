@@ -34,14 +34,14 @@ export function SettingsView() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال الاسم', variant: 'destructive' })
+      toast({ title: 'Error', description: 'Please enter your name', variant: 'destructive' })
       return
     }
     setSaving(true)
     // Simulate save
     setTimeout(() => {
       setUser({ ...user!, name, email })
-      toast({ title: 'تم الحفظ', description: 'تم تحديث إعداداتك بنجاح' })
+      toast({ title: 'Saved', description: 'Your settings have been updated successfully' })
       setSaving(false)
     }, 1000)
   }
@@ -49,8 +49,8 @@ export function SettingsView() {
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">الإعدادات</h1>
-        <p className="text-muted-foreground">إدارة حسابك وتفضيلاتك</p>
+        <h1 className="text-2xl md:text-3xl font-bold mb-1">Settings</h1>
+        <p className="text-muted-foreground">Manage your account and preferences</p>
       </div>
 
       {/* Profile */}
@@ -58,26 +58,26 @@ export function SettingsView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <User className="h-5 w-5 text-muted-foreground" />
-            الملف الشخصي
+            Profile
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4 mb-4">
             <div className="h-16 w-16 rounded-full bg-sky-500/20 flex items-center justify-center text-2xl font-bold text-sky-400">
-              {user?.name?.charAt(0) || 'م'}
+              {user?.name?.charAt(0) || 'U'}
             </div>
             <div>
               <p className="font-semibold">{user?.name}</p>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                عضو منذ {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('ar-SA') : 'الآن'}
+                Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US') : 'now'}
               </p>
             </div>
           </div>
           <Separator />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>الاسم الكامل</Label>
+              <Label>Full Name</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -85,12 +85,11 @@ export function SettingsView() {
               />
             </div>
             <div className="space-y-2">
-              <Label>البريد الإلكتروني</Label>
+              <Label>Email</Label>
               <Input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-background"
-                dir="ltr"
                 disabled
               />
             </div>
@@ -101,7 +100,7 @@ export function SettingsView() {
             className="bg-sky-500 hover:bg-sky-600 gap-2"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            حفظ التغييرات
+            Save Changes
           </Button>
         </CardContent>
       </Card>
@@ -111,31 +110,31 @@ export function SettingsView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Lock className="h-5 w-5 text-muted-foreground" />
-            تغيير كلمة المرور
+            Change Password
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>كلمة المرور الحالية</Label>
-            <Input type="password" placeholder="••••••••" className="bg-background" dir="ltr" />
+            <Label>Current Password</Label>
+            <Input type="password" placeholder="••••••••" className="bg-background" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>كلمة المرور الجديدة</Label>
-              <Input type="password" placeholder="••••••••" className="bg-background" dir="ltr" />
+              <Label>New Password</Label>
+              <Input type="password" placeholder="••••••••" className="bg-background" />
             </div>
             <div className="space-y-2">
-              <Label>تأكيد كلمة المرور الجديدة</Label>
-              <Input type="password" placeholder="••••••••" className="bg-background" dir="ltr" />
+              <Label>Confirm New Password</Label>
+              <Input type="password" placeholder="••••••••" className="bg-background" />
             </div>
           </div>
           <Button
             variant="outline"
-            onClick={() => toast({ title: 'تم', description: 'تم تغيير كلمة المرور بنجاح' })}
+            onClick={() => toast({ title: 'Done', description: 'Password changed successfully' })}
             className="gap-2"
           >
             <Lock className="h-4 w-4" />
-            تحديث كلمة المرور
+            Update Password
           </Button>
         </CardContent>
       </Card>
@@ -145,15 +144,15 @@ export function SettingsView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Bell className="h-5 w-5 text-muted-foreground" />
-            الإشعارات
+            Notifications
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {[
-            { key: 'email' as const, label: 'إشعارات البريد الإلكتروني', desc: 'استلم إشعارات مهمة عبر البريد' },
-            { key: 'workspace' as const, label: 'إشعارات مساحة العمل', desc: 'تنبيهات حالة مساحات العمل' },
-            { key: 'billing' as const, label: 'إشعارات الفواتير', desc: 'تنبيهات الدفع والاشتراك' },
-            { key: 'marketing' as const, label: 'العروض والتحديثات', desc: 'أخبار المنصة والعروض الخاصة' },
+            { key: 'email' as const, label: 'Email Notifications', desc: 'Receive important notifications via email' },
+            { key: 'workspace' as const, label: 'Workspace Notifications', desc: 'Alerts about workspace status changes' },
+            { key: 'billing' as const, label: 'Billing Notifications', desc: 'Payment and subscription alerts' },
+            { key: 'marketing' as const, label: 'Promotions & Updates', desc: 'Platform news and special offers' },
           ].map((item) => (
             <div
               key={item.key}
@@ -179,15 +178,15 @@ export function SettingsView() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg text-destructive flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            منطقة الخطر
+            Danger Zone
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <p className="font-medium text-sm">حذف الحساب</p>
+              <p className="font-medium text-sm">Delete Account</p>
               <p className="text-xs text-muted-foreground">
-                سيتم حذف حسابك وجميع بياناتك بشكل نهائي
+                Your account and all data will be permanently deleted
               </p>
             </div>
             <Button
@@ -196,7 +195,7 @@ export function SettingsView() {
               className="gap-2"
             >
               <Shield className="h-4 w-4" />
-              حذف الحساب
+              Delete Account
             </Button>
           </div>
         </CardContent>
