@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.digitalocean.com/pricing/droplets",
+    "name": "Droplet Pricing | DigitalOcean",
+    "snippet": "Effective January 1, 2026, we're moving to per-second billing (with a minimum charge of 60 seconds or $0.01, whichever is higher) for Droplets. This offers ... Missing: 2025 | Show results with: 2025",
+    "host_name": "www.digitalocean.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.digitalocean.com/products/droplets",
+    "name": "DigitalOcean Droplets | Scalable Cloud Compute Starting at $4/mo",
+    "snippet": "Get dependable uptime with our 99.99% SLA, simple security tools, and predictable monthly pricing with DigitalOcean's virtual machines, called Droplets. Get ... Missing: 2025 | Show results with: 2025",
+    "host_name": "www.digitalocean.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.fluence.network/blog/digitalocean-droplets-vs-fluence",
+    "name": "DigitalOcean Droplet Pricing (2026): 2 vCPU 4GB Cost, Bandwidth",
+    "snippet": "How much does a DigitalOcean 2 vCPU 4GB Droplet cost? The Basic 2 vCPU, 4 GiB Droplet costs $24 per month or $0.03571 per hour. How much ...",
+    "host_name": "www.fluence.network",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.digitalocean.com/products/droplets/details/pricing",
+    "name": "Droplet Pricing | DigitalOcean Documentation",
+    "snippet": "Droplets are billed per-second with a minimum charge of 60 seconds or $0.01, whichever is higher. If you create a Droplet and destroy it less than 60 seconds ... Missing: 2025 | Show results with: 2025",
+    "host_name": "docs.digitalocean.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.digitalocean.com/pricing",
+    "name": "Budget-Friendly Cloud Server Pricing - DigitalOcean",
+    "snippet": "Free Reserved IPs when assigned to a Droplet. Industry leading bandwidth pricing, Droplets include free outbound data transfer, starting at 500 GiB / mo. Free ... Missing: 2025 | Show results with: 2025",
+    "host_name": "www.digitalocean.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]
