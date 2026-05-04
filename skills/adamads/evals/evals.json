@@ -1,0 +1,23 @@
+{
+  "skill_name": "digital-product-marketer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just created a Notion template for project management called 'ProjectFlow Pro'. It has 50+ templates for tracking tasks, timelines, and team workloads. Target audience is freelancers and small agency owners. My goal is sales. Help me market it.",
+      "expected_output": "A complete marketing plan covering: audience persona for freelancers/agency owners, 3 ad copies using PAS/Identity/Urgency frameworks, 2 hooks, long-form description, video idea, 7-day posting schedule with specific times and platforms, channel recommendations (Gumroad, Etsy, Pinterest, TikTok, etc.), automation workflow steps, and weekly report template.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I'm selling a $29 Canva social media template pack with 200 templates for small business owners. I want to drive traffic to my Gumroad store. Create a content plan and schedule for the next week.",
+      "expected_output": "Focused on content creation and scheduling pillars: 3 ad copies specific to Canva templates, 2 hooks, video idea showing templates in action, 7-day schedule with Instagram Reels, Pinterest pins, TikTok demos, and email sequences. Distribution channel focus on Gumroad + Pinterest + Instagram. Should include specific posting times.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I launched an online course teaching Python for data science last month. I've posted 5 TikToks, 3 Instagram Reels, and sent 2 emails. Got 12K views total but only 23 sales at $99 each. What should I do differently? Generate a weekly report and next steps.",
+      "expected_output": "Weekly report with metrics analysis, diagnosis of low conversion (12K views → 23 sales = 0.19% conversion = Conversion Failure), specific recommendations to fix the funnel: stronger CTA, better offer (maybe a discount or bonus module), educational content on YouTube, email nurture sequence, and possibly A/B test different pricing or hook approaches.",
+      "files": []
+    }
+  ]
+}
