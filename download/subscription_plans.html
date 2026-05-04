@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: 210mm 297mm; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --text: #1a1a2e;
+    --text-sub: #555770;
+    --text-muted: #8b8da3;
+    --bg: #ffffff;
+    --surface: #f4f5fa;
+    --border: #e2e4ef;
+    --accent: #2d6a4f;
+    --accent-light: #d8f3dc;
+    --accent-dark: #1b4332;
+    --blue: #3b82f6;
+    --blue-light: #eff6ff;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --green: #059669;
+    --green-light: #ecfdf5;
+    --purple: #7c3aed;
+    --purple-light: #f5f3ff;
+    --cyan: #0891b2;
+    --cyan-light: #ecfeff;
+  }
+  
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'DejaVu Sans', 'FreeSans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    direction: rtl;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 0;
+  }
+  
+  /* ─── Cover ─── */
+  .cover {
+    width: 210mm; height: 297mm;
+    background: linear-gradient(160deg, #1b4332 0%, #2d6a4f 40%, #40916c 100%);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; color: white; position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M20 20h20v20H20zM0 0h20v20H0z'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .cover-content { position: relative; z-index: 1; padding: 40px; }
+  .cover-badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 6px 20px; font-size: 13px; font-weight: 600; letter-spacing: 1px; margin-bottom: 24px; }
+  .cover h1 { font-size: 34px; font-weight: 800; line-height: 1.3; margin-bottom: 16px; }
+  .cover h2 { font-size: 18px; font-weight: 400; opacity: 0.85; margin-bottom: 32px; max-width: 500px; line-height: 1.6; }
+  .cover-meta { font-size: 13px; opacity: 0.5; margin-top: 40px; }
+  
+  /* ─── Content ─── */
+  .content-page { width: 210mm; min-height: 297mm; padding: 32px 36px; background: white; }
+  
+  .section-title {
+    font-size: 18px; font-weight: 700; color: var(--accent-dark);
+    margin-bottom: 18px; padding-bottom: 10px; border-bottom: 3px solid var(--accent);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; background: var(--accent); color: white;
+    border-radius: 8px; font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+  
+  .body-text { font-size: 11.5px; line-height: 1.8; color: var(--text); margin: 10px 0; }
+  
+  /* ─── User Plans ─── */
+  .plans-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 18px 0;
+  }
+  .plan-card {
+    border: 2px solid var(--border); border-radius: 12px; padding: 16px 12px;
+    text-align: center; position: relative; transition: all 0.2s;
+  }
+  .plan-card.popular {
+    border-color: var(--accent); background: var(--accent-light);
+    transform: scale(1.02);
+  }
+  .plan-card .plan-badge {
+    position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: white; font-size: 8px; font-weight: 700;
+    padding: 2px 10px; border-radius: 10px; white-space: nowrap;
+  }
+  .plan-card .plan-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; margin-top: 6px; }
+  .plan-card .plan-sub { font-size: 9px; color: var(--text-sub); margin-bottom: 10px; }
+  .plan-card .plan-price { font-size: 24px; font-weight: 800; color: var(--accent-dark); }
+  .plan-card .plan-price span { font-size: 11px; font-weight: 400; color: var(--text-sub); }
+  .plan-card .plan-features { margin-top: 12px; text-align: right; font-size: 9.5px; line-height: 2; color: var(--text-sub); }
+  .plan-card .plan-features div { display: flex; align-items: center; gap: 4px; }
+  .plan-card .check { color: var(--green); font-weight: 700; }
+  .plan-card .cross { color: var(--red); font-weight: 700; }
+  .plan-card.popular .plan-price { color: var(--accent-dark); }
+  
+  /* ─── Tables ─── */
+  .data-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 11px; }
+  .data-table thead th {
+    background: var(--accent-dark); color: white; padding: 9px 10px;
+    text-align: center; font-weight: 600; font-size: 10.5px; white-space: nowrap;
+  }
+  .data-table thead th:first-child { border-radius: 0 8px 0 0; }
+  .data-table thead th:last-child { border-radius: 8px 0 0 0; }
+  .data-table tbody td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: center; font-size: 10.5px; }
+  .data-table tbody tr:nth-child(even) { background: #fafbfc; }
+  .data-table tbody tr:hover { background: #f0f4f2; }
+  .data-table tfoot td { background: #f4f5fa; font-weight: 700; padding: 9px 10px; border-top: 2px solid var(--accent); }
+  
+  .profit-pos { color: var(--green); font-weight: 700; }
+  .profit-neg { color: var(--red); font-weight: 700; }
+  .highlight-row { background: var(--accent-light) !important; }
+  .highlight-row td { font-weight: 600; }
+  
+  /* ─── Owner Grid ─── */
+  .owner-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  .owner-card {
+    background: white; border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 16px; text-align: center;
+  }
+  .owner-card.best { border-color: var(--accent); background: var(--accent-light); }
+  .owner-card .oc-title { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .owner-card .oc-specs { font-size: 10px; color: var(--text-sub); line-height: 1.6; margin-bottom: 8px; }
+  .owner-card .oc-price { font-size: 20px; font-weight: 800; color: var(--accent-dark); }
+  .owner-card .oc-price span { font-size: 11px; font-weight: 400; color: var(--text-sub); }
+  
+  /* ─── Metrics ─── */
+  .metrics-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 16px 0; }
+  .metric-box { background: var(--surface); border-radius: 10px; padding: 14px 10px; text-align: center; border: 1px solid var(--border); }
+  .metric-box .mv { font-size: 22px; font-weight: 800; color: var(--accent-dark); }
+  .metric-box .ml { font-size: 9px; color: var(--text-sub); margin-top: 4px; line-height: 1.4; }
+  
+  /* ─── Info Boxes ─── */
+  .info-box { padding: 12px 16px; border-radius: 10px; margin: 12px 0; font-size: 11px; line-height: 1.7; border-right: 4px solid; }
+  .info-box.tip { background: var(--green-light); border-color: var(--green); color: #065f46; }
+  .info-box.warning { background: var(--amber-light); border-color: var(--amber); color: #92400e; }
+  .info-box.note { background: var(--blue-light); border-color: var(--blue); color: #1e40af; }
+  .info-box strong { display: block; margin-bottom: 3px; font-size: 12px; }
+  
+  /* ─── Bar Chart ─── */
+  .chart-container { margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+  .h-bar-chart { display: flex; flex-direction: column; gap: 8px; }
+  .h-bar-row { display: flex; align-items: center; gap: 10px; }
+  .h-bar-label { width: 70px; font-size: 10px; font-weight: 600; color: var(--text); text-align: left; flex-shrink: 0; }
+  .h-bar-track { flex: 1; height: 24px; background: #e8eaef; border-radius: 6px; overflow: hidden; position: relative; }
+  .h-bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; padding: 0 8px; font-size: 10px; font-weight: 700; color: white; }
+  .h-bar-fill.c1 { background: linear-gradient(90deg, #94a3b8, #cbd5e1); }
+  .h-bar-fill.c2 { background: linear-gradient(90deg, #2d6a4f, #40916c); }
+  .h-bar-fill.c3 { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .h-bar-fill.c4 { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+  .h-bar-fill.c5 { background: linear-gradient(90deg, #d97706, #f59e0b); }
+  
+  /* Dual Bar (profit vs cost) */
+  .dual-bar-row { display: flex; align-items: center; gap: 10px; }
+  .dual-bar-label { width: 75px; font-size: 10px; font-weight: 600; color: var(--text); text-align: left; flex-shrink: 0; }
+  .dual-bar-track { flex: 1; height: 22px; position: relative; }
+  .dual-bar-cost { position: absolute; top: 0; right: 0; height: 100%; border-radius: 0 6px 6px 0; display: flex; align-items: center; justify-content: flex-end; padding: 0 6px; font-size: 9px; font-weight: 600; color: white; background: #f87171; }
+  .dual-bar-profit { position: absolute; top: 0; height: 100%; border-radius: 6px 0 0 6px; display: flex; align-items: center; padding: 0 6px; font-size: 9px; font-weight: 600; color: white; background: var(--accent); }
+  
+  /* ─── Scenarios ─── */
+  .scenario-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  .scenario-card { background: white; border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .scenario-header { padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: white; }
+  .scenario-header.sh1 { background: #64748b; }
+  .scenario-header.sh2 { background: var(--accent); }
+  .scenario-header.sh3 { background: var(--amber); }
+  .scenario-body { padding: 12px; font-size: 10px; line-height: 1.8; color: var(--text-sub); }
+  .scenario-body .sv { font-size: 16px; font-weight: 800; color: var(--accent-dark); text-align: center; margin: 6px 0; }
+  .scenario-body .sv span { font-size: 10px; font-weight: 400; color: var(--text-sub); }
+  
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+  .page-break { page-break-before: always; }
+  .page-footer { text-align: center; font-size: 9px; color: var(--text-muted); padding-top: 14px; border-top: 1px solid var(--border); margin-top: 20px; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+  .tag-free { background: #f1f5f9; color: #475569; }
+  .tag-basic { background: var(--green-light); color: var(--green); }
+  .tag-pro { background: var(--blue-light); color: var(--blue); }
+  .tag-biz { background: var(--purple-light); color: var(--purple); }
+  .tag-ent { background: var(--amber-light); color: var(--amber); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ COVER ═══════════ -->
+<div class="cover">
+  <div class="cover-content">
+    <div class="cover-badge">خطط الاشتراك النهائية</div>
+    <h1>جداول الاشتراكات الشهرية<br>للمستخدم وصاحب المنصة</h1>
+    <h2>حساب دقيق للتكلفة والربحية لكل خطة بناءً على أسعار السوق الحقيقية - مايو 2026</h2>
+    <div class="cover-meta">نموذج بيع مساحات العمل | Contabo VPS 20 كبنية تحتية أساسية</div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 1: USER PLANS ═══════════ -->
+<div class="content-page">
+  <div class="section-title">
+    <span class="section-num">1</span>
+    جدول اشتراكات المستخدم الشهرية
+  </div>
+  
+  <p class="body-text">
+    تم تصميم 5 خطط اشتراك تلبي مختلف الاحتياجات - من المستخدم التجريبي إلى المؤسسات الكبيرة. كل خطة تحدد الموارد المتاحة للمستخدم وعدد البرامج التي يمكن تشغيلها. الأسعار مصممة لتحقيق توازن بين التنافسية والربحية.
+  </p>
+
+  <div class="plans-grid">
+    <!-- Free -->
+    <div class="plan-card">
+      <div class="plan-name">مجانية</div>
+      <div class="plan-sub">للتجربة فقط</div>
+      <div class="plan-price">$0 <span>/شهر</span></div>
+      <div class="plan-features">
+        <div><span class="check">+</span> 0.5 vCPU</div>
+        <div><span class="check">+</span> 512 MB RAM</div>
+        <div><span class="check">+</span> 5 GB تخزين</div>
+        <div><span class="check">+</span> 1 منصة فقط</div>
+        <div><span class="cross">-</span> بدون دومين خاص</div>
+        <div><span class="cross">-</span> بدون دعم فني</div>
+        <div><span class="check">+</span> 7 أيام ثم تحذير</div>
+      </div>
+    </div>
+    <!-- Basic -->
+    <div class="plan-card">
+      <div class="plan-name">الأساسية</div>
+      <div class="plan-sub">للمستخدم العادي</div>
+      <div class="plan-price">$9 <span>/شهر</span></div>
+      <div class="plan-features">
+        <div><span class="check">+</span> 1 vCPU</div>
+        <div><span class="check">+</span> 2 GB RAM</div>
+        <div><span class="check">+</span> 20 GB تخزين</div>
+        <div><span class="check">+</span> 3 منصات</div>
+        <div><span class="check">+</span> دومين خاص</div>
+        <div><span class="check">+</span> دعم عبر التذاكر</div>
+        <div><span class="check">+</span> نسخ احتياطي أسبوعي</div>
+      </div>
+    </div>
+    <!-- Professional (Popular) -->
+    <div class="plan-card popular">
+      <div class="plan-badge">الأكثر طلباً</div>
+      <div class="plan-name">الاحترافية</div>
+      <div class="plan-sub">للفرق الصغيرة</div>
+      <div class="plan-price">$19 <span>/شهر</span></div>
+      <div class="plan-features">
+        <div><span class="check">+</span> 2 vCPU</div>
+        <div><span class="check">+</span> 4 GB RAM</div>
+        <div><span class="check">+</span> 50 GB تخزين</div>
+        <div><span class="check">+</span> 6 منصات</div>
+        <div><span class="check">+</span> دومين خاص</div>
+        <div><span class="check">+</span> دعم أولوية</div>
+        <div><span class="check">+</span> نسخ احتياطي يومي</div>
+      </div>
+    </div>
+    <!-- Business -->
+    <div class="plan-card">
+      <div class="plan-name">الأعمال</div>
+      <div class="plan-sub">للأعمال المتنامية</div>
+      <div class="plan-price">$39 <span>/شهر</span></div>
+      <div class="plan-features">
+        <div><span class="check">+</span> 3 vCPU</div>
+        <div><span class="check">+</span> 8 GB RAM</div>
+        <div><span class="check">+</span> 100 GB تخزين</div>
+        <div><span class="check">+</span> 10 منصات</div>
+        <div><span class="check">+</span> دومين خاص + SSL</div>
+        <div><span class="check">+</span> دعم مباشر</div>
+        <div><span class="check">+</span> نسخ احتياطي + مراقبة</div>
+      </div>
+    </div>
+    <!-- Enterprise -->
+    <div class="plan-card">
+      <div class="plan-name">المؤسسات</div>
+      <div class="plan-sub">للمشاريع الكبيرة</div>
+      <div class="plan-price">$79 <span>/شهر</span></div>
+      <div class="plan-features">
+        <div><span class="check">+</span> 4 vCPU</div>
+        <div><span class="check">+</span> 16 GB RAM</div>
+        <div><span class="check">+</span> 200 GB تخزين</div>
+        <div><span class="check">+</span> منصات غير محدودة</div>
+        <div><span class="check">+</span> كل المميزات</div>
+        <div><span class="check">+</span> مدير حساب خاص</div>
+        <div><span class="check">+</span> SLA 99.9%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Table -->
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>البند</th>
+        <th><span class="tag tag-free">مجانية</span></th>
+        <th><span class="tag tag-basic">الأساسية</span></th>
+        <th><span class="tag tag-pro">الاحترافية</span></th>
+        <th><span class="tag tag-biz">الأعمال</span></th>
+        <th><span class="tag tag-ent">المؤسسات</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>المعالج (vCPU)</strong></td><td>0.5</td><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+      <tr><td><strong>الذاكرة (RAM)</strong></td><td>512 MB</td><td>2 GB</td><td>4 GB</td><td>8 GB</td><td>16 GB</td></tr>
+      <tr><td><strong>التخزين (NVMe)</strong></td><td>5 GB</td><td>20 GB</td><td>50 GB</td><td>100 GB</td><td>200 GB</td></tr>
+      <tr><td><strong>النطاق الشهري</strong></td><td>100 GB</td><td>1 TB</td><td>3 TB</td><td>غير محدود</td><td>غير محدود</td></tr>
+      <tr><td><strong>عدد المنصات</strong></td><td>1</td><td>3</td><td>6</td><td>10</td><td>غير محدود</td></tr>
+      <tr class="highlight-row"><td><strong>السعر/شهر</strong></td><td>$0</td><td>$9</td><td>$19</td><td>$39</td><td>$79</td></tr>
+      <tr><td><strong>السعر/سنوي</strong></td><td>$0</td><td>$90</td><td>$190</td><td>$390</td><td>$790</td></tr>
+      <tr><td><strong>السعر/سنوي (خصم)</strong></td><td>$0</td><td>$80 <small>(-11%)</small></td><td>$170 <small>(-11%)</small></td><td>$350 <small>(-10%)</small></td><td>$710 <small>(-10%)</small></td></tr>
+      <tr><td><strong>دومين خاص</strong></td><td><span class="cross">-</span></td><td><span class="check">+</span></td><td><span class="check">+</span></td><td><span class="check">+</span></td><td><span class="check">+</span></td></tr>
+      <tr><td><strong>شهادة SSL</strong></td><td><span class="check">+</span></td><td><span class="check">+</span></td><td><span class="check">+</span></td><td><span class="check">+</span></td><td><span class="check">+</span></td></tr>
+      <tr><td><strong>النسخ الاحتياطي</strong></td><td>يدوي</td><td>أسبوعي</td><td>يومي</td><td>يومي + سحابي</td><td>ساعي + سحابي</td></tr>
+      <tr><td><strong>الدعم الفني</strong></td><td>مجتمعي</td><td>تذاكر</td><td>أولوية 24h</td><td>مباشر 12h</td><td>مدير حساب</td></tr>
+      <tr><td><strong>المنصات المناسبة</strong></td><td>Vaultwarden<br>Uptime Kuma</td><td>n8n<br>WordPress<br>Gitea</td><td>Nextcloud<br>Moodle<br>n8n+WP</td><td>Odoo<br>Jellyfin<br>متعدد</td><td>كل شيء<br>بلا حدود</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box note">
+    <strong>ملاحظة عن الخطة المجانية</strong>
+    الخطة المجانية محدودة بـ 7 أيام فقط ثم يُطلب من المستخدم الترقية. الهدف هو جذب العملاء وتجربة المنصة. تكلفة الخطة المجانية ($0) لكنها تستهلك موارد من الخادم، لذلك يُنصح بتحديدها بعدد محدود (5-10 مساحات مجانية كحد أقصى على كل خادم).
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 2: OWNER TABLE ═══════════ -->
+<div class="content-page page-break">
+  <div class="section-title">
+    <span class="section-num">2</span>
+    جدول تكاليف وأرباح صاحب المنصة (الشهرية)
+  </div>
+  
+  <p class="body-text">
+    الجدول التالي يحسب التكلفة الفعلية والربح لصاحب المنصة بناءً على استخدام خوادم Contabo VPS 20 (السعر $7.99/شهر، 16 GB RAM، 200 GB NVMe). تم حساب عدد المساحات لكل خطة بناءً على حصة RAM لكل مستخدم مع احتساب 3 GB محجوزة للنظام.
+  </p>
+
+  <div class="metrics-row">
+    <div class="metric-box">
+      <div class="mv">$7.99</div>
+      <div class="ml">تكلفة الخادم/شهر</div>
+    </div>
+    <div class="metric-box">
+      <div class="mv">13 GB</div>
+      <div class="ml">RAM متاح للمستخدمين</div>
+    </div>
+    <div class="metric-box">
+      <div class="mv">$0.61</div>
+      <div class="ml">تكلفة/1GB RAM للمستخدم</div>
+    </div>
+    <div class="metric-box">
+      <div class="mv">96.2%</div>
+      <div class="ml">متوسط هامش الربح</div>
+    </div>
+    <div class="metric-box">
+      <div class="mv">6.5x</div>
+      <div class="ml">متوسط عائد الاستثمار</div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>الخطة</th>
+        <th>RAM/مساحة</th>
+        <th>عدد المساحات<br>على الخادم</th>
+        <th>سعر البيع<br>/مساحة/شهر</th>
+        <th>التكلفة<br>/مساحة/شهر</th>
+        <th>الربح<br>/مساحة/شهر</th>
+        <th>هامش الربح</th>
+        <th>إجمالي الربح<br>/الخادم/شهر</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-free">مجانية</span></td>
+        <td>0.5 GB</td>
+        <td>26</td>
+        <td>$0</td>
+        <td>$0.31</td>
+        <td class="profit-neg">-$0.31</td>
+        <td>-</td>
+        <td class="profit-neg">-$8.06</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-basic">الأساسية</span></td>
+        <td>2 GB</td>
+        <td>6</td>
+        <td>$9</td>
+        <td>$1.33</td>
+        <td class="profit-pos">+$7.67</td>
+        <td class="profit-pos">85.2%</td>
+        <td class="profit-pos">+$46.01</td>
+      </tr>
+      <tr class="highlight-row">
+        <td><span class="tag tag-pro">الاحترافية</span></td>
+        <td>4 GB</td>
+        <td>3</td>
+        <td>$19</td>
+        <td>$2.66</td>
+        <td class="profit-pos">+$16.34</td>
+        <td class="profit-pos">86.0%</td>
+        <td class="profit-pos">+$49.01</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-biz">الأعمال</span></td>
+        <td>8 GB</td>
+        <td>1</td>
+        <td>$39</td>
+        <td>$7.99</td>
+        <td class="profit-pos">+$31.01</td>
+        <td class="profit-pos">79.5%</td>
+        <td class="profit-pos">+$31.01</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-ent">المؤسسات</span></td>
+        <td>16 GB</td>
+        <td>1 (خادم كامل)</td>
+        <td>$79</td>
+        <td>$7.99</td>
+        <td class="profit-pos">+$71.01</td>
+        <td class="profit-pos">89.9%</td>
+        <td class="profit-pos">+$71.01</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3"><strong>المتوسط (بدون المجانية)</strong></td>
+        <td><strong>$36.50</strong></td>
+        <td><strong>$4.99</strong></td>
+        <td class="profit-pos"><strong>+$31.51</strong></td>
+        <td class="profit-pos"><strong>85.1%</strong></td>
+        <td class="profit-pos"><strong>$49.26</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="chart-container">
+    <div class="chart-title">الربح مقابل التكلفة لكل خطة (دولار/شهر/مساحة)</div>
+    <div class="h-bar-chart" style="margin-top: 12px;">
+      <div class="dual-bar-row">
+        <div class="dual-bar-label">الاحترافية</div>
+        <div class="dual-bar-track" style="position: relative;">
+          <div class="dual-bar-profit" style="width: 86%; left: 0;">ربح $16.34</div>
+          <div class="dual-bar-cost" style="width: 14%; right: 0;">تكلفة $2.66</div>
+        </div>
+      </div>
+      <div class="dual-bar-row">
+        <div class="dual-bar-label">المؤسسات</div>
+        <div class="dual-bar-track" style="position: relative;">
+          <div class="dual-bar-profit" style="width: 90%; left: 0;">ربح $71.01</div>
+          <div class="dual-bar-cost" style="width: 10%; right: 0;">تكلفة $7.99</div>
+        </div>
+      </div>
+      <div class="dual-bar-row">
+        <div class="dual-bar-label">الأعمال</div>
+        <div class="dual-bar-track" style="position: relative;">
+          <div class="dual-bar-profit" style="width: 79%; left: 0;">ربح $31.01</div>
+          <div class="dual-bar-cost" style="width: 21%; right: 0;">تكلفة $7.99</div>
+        </div>
+      </div>
+      <div class="dual-bar-row">
+        <div class="dual-bar-label">الأساسية</div>
+        <div class="dual-bar-track" style="position: relative;">
+          <div class="dual-bar-profit" style="width: 85%; left: 0;">ربح $7.67</div>
+          <div class="dual-bar-cost" style="width: 15%; right: 0;">تكلفة $1.33</div>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px; margin-top: 10px; font-size: 10px; color: var(--text-sub);">
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:14px;height:10px;background:var(--accent);border-radius:2px;"></div> الربح</div>
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:14px;height:10px;background:#f87171;border-radius:2px;"></div> التكلفة</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top: 24px;">
+    <span class="section-num">3</span>
+    إجمالي تكاليف صاحب المنصة الشهرية (التشغيلية)
+  </div>
+
+  <div class="two-col">
+    <table class="data-table">
+      <thead><tr><th>بند التكلفة</th><th>المبلغ/شهر</th><th>ملاحظات</th></tr></thead>
+      <tbody>
+        <tr><td>خادم Contabo VPS 20</td><td>$7.99</td><td>لكل 13 GB RAM مستخدمين</td></tr>
+        <tr><td>خادم Hetzner (للمنصة)</td><td>$5.50</td><td>الموقع + لوحة التحكم</td></tr>
+        <tr><td>اسم النطاق (Domain)</td><td>$1.25</td><td>$15/سنة مقسومة</td></tr>
+        <tr><td>بريد إلكتروني (Zoho)</td><td>$1.00</td><td>اختياري - يمكن استخدام مجاني</td></tr>
+        <tr><td>نسخ احتياطي (Backblaze B2)</td><td>$5.00</td><td>يبدأ صغير وينمو</td></tr>
+        <tr><td>مراقبة (UptimeRobot)</td><td>$0.00</td><td>مجاني لـ 50 شاشة</td></tr>
+        <tr><td>بوابة الدفع (Stripe)</td><td>2.9%+$0.30</td><td>من كل معاملة</td></tr>
+        <tr class="highlight-row"><td><strong>الإجمالي الثابت</strong></td><td><strong>$20.74</strong></td><td>قبل الدعم والتسويق</td></tr>
+      </tbody>
+    </table>
+    <div>
+      <div class="info-box tip">
+        <strong>تكلفة البدء منخفضة جداً</strong>
+        بإمكانك البدء بخادم Contabo VPS 10 ($4.99) فقط والذي يعمل كمزود للمنصة نفسها + مستخدمين قلائل. الإجمالي الثابت للبدء: أقل من $10/شهر!
+      </div>
+      <div class="info-box warning">
+        <strong>تكاليف متغيرة يجب الانتباه لها</strong>
+        كلما زاد عدد المستخدمين تحتاج خوادم إضافية. عند 30+ مستخدم مدفوع ستحتاج 3-4 خوادم. التكلفة تنمو لكن الأرباح تنمو أسرع.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 3: SCENARIOS ═══════════ -->
+<div class="content-page page-break">
+  <div class="section-title">
+    <span class="section-num">4</span>
+    سيناريوهات الربحية حسب عدد المستخدمين
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>عدد المستخدمين<br>(توزيع تقديري)</th>
+        <th>الخوادم<br>المطلوبة</th>
+        <th>تكلفة الخوادم<br>/شهر</th>
+        <th>التكاليف الثابتة<br>/شهر</th>
+        <th>إجمالي التكلفة<br>/شهر</th>
+        <th>إجمالي الإيرادات<br>/شهر</th>
+        <th>صافي الربح<br>/شهر</th>
+        <th>هامش الربح</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>10 مستخدمين<br><small>(3 أساسية + 4 احترافية + 2 أعمال + 1 مؤسسات)</small></td>
+        <td>2</td>
+        <td>$16.00</td>
+        <td>$15.00</td>
+        <td>$31.00</td>
+        <td>$224.00</td>
+        <td class="profit-pos">+$193.00</td>
+        <td class="profit-pos">86.2%</td>
+      </tr>
+      <tr>
+        <td>25 مستخدم<br><small>(8 أساسية + 10 احترافية + 5 أعمال + 2 مؤسسات)</small></td>
+        <td>4</td>
+        <td>$32.00</td>
+        <td>$18.00</td>
+        <td>$50.00</td>
+        <td>$568.00</td>
+        <td class="profit-pos">+$518.00</td>
+        <td class="profit-pos">91.2%</td>
+      </tr>
+      <tr class="highlight-row">
+        <td>50 مستخدم<br><small>(15 أساسية + 20 احترافية + 10 أعمال + 5 مؤسسات)</small></td>
+        <td>8</td>
+        <td>$64.00</td>
+        <td>$22.00</td>
+        <td>$86.00</td>
+        <td>$1,195.00</td>
+        <td class="profit-pos">+$1,109.00</td>
+        <td class="profit-pos">92.8%</td>
+      </tr>
+      <tr>
+        <td>100 مستخدم<br><small>(30 أساسية + 40 احترافية + 20 أعمال + 10 مؤسسات)</small></td>
+        <td>15</td>
+        <td>$120.00</td>
+        <td>$30.00</td>
+        <td>$150.00</td>
+        <td>$2,420.00</td>
+        <td class="profit-pos">+$2,270.00</td>
+        <td class="profit-pos">93.8%</td>
+      </tr>
+      <tr>
+        <td>200 مستخدم<br><small>(60 أساسية + 80 احترافية + 40 أعمال + 20 مؤسسات)</small></td>
+        <td>30</td>
+        <td>$240.00</td>
+        <td>$45.00</td>
+        <td>$285.00</td>
+        <td>$4,880.00</td>
+        <td class="profit-pos">+$4,595.00</td>
+        <td class="profit-pos">94.2%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="chart-container">
+    <div class="chart-title">نمو الربح الشهري مع زيادة المستخدمين</div>
+    <div class="h-bar-chart" style="margin-top: 12px;">
+      <div class="h-bar-row">
+        <div class="h-bar-label">200 مستخدم</div>
+        <div class="h-bar-track"><div class="h-bar-fill c5" style="width:100%">$4,595</div></div>
+      </div>
+      <div class="h-bar-row">
+        <div class="h-bar-label">100 مستخدم</div>
+        <div class="h-bar-track"><div class="h-bar-fill c4" style="width:49%">$2,270</div></div>
+      </div>
+      <div class="h-bar-row">
+        <div class="h-bar-label">50 مستخدم</div>
+        <div class="h-bar-track"><div class="h-bar-fill c2" style="width:24%">$1,109</div></div>
+      </div>
+      <div class="h-bar-row">
+        <div class="h-bar-label">25 مستخدم</div>
+        <div class="h-bar-track"><div class="h-bar-fill c3" style="width:11%">$518</div></div>
+      </div>
+      <div class="h-bar-row">
+        <div class="h-bar-label">10 مستخدمين</div>
+        <div class="h-bar-track"><div class="h-bar-fill c1" style="width:4%">$193</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top: 24px;">
+    <span class="section-num">5</span>
+    نقطة التعادل والإيرادات السنوية
+  </div>
+
+  <div class="scenario-grid">
+    <div class="scenario-card">
+      <div class="scenario-header sh1">نقطة التعادل</div>
+      <div class="scenario-body">
+        <div class="sv">3 <span>مستخدمين مدفوعين</span></div>
+        تكلفة التشغيل الشهرية: ~$21<br>
+        يحتاج 3 مستخدمين بالخطة الأساسية ($9 x 3 = $27) لتغطية التكاليف والبدء بالربح
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="scenario-header sh2">الإيراد السنوي (50 مستخدم)</div>
+      <div class="scenario-body">
+        <div class="sv">$13,308 <span>/سنة</span></div>
+        إجمالي ربح سنوي مع 50 مستخدم<br>
+        تكلفة سنوية: $1,032<br>
+        صافي ربح: $12,276
+      </div>
+    </div>
+    <div class="scenario-card">
+      <div class="scenario-header sh3">الإيراد السنوي (200 مستخدم)</div>
+      <div class="scenario-body">
+        <div class="sv">$55,140 <span>/سنة</span></div>
+        إجمالي ربح سنوي مع 200 مستخدم<br>
+        تكلفة سنوية: $3,420<br>
+        صافي ربح: $51,720
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box tip">
+    <strong>الخلاصة: نموذج ربحي جداً بهامش عالٍ</strong>
+    مع تكلفة بدء تقل عن $21/شهر ونقطة تعادل عند 3 مستخدمين فقط، هذا النموذج يُعد من أكثر المشاريع ربحية. هامش الربح يتراوح بين 86-94% ويزداد مع نمو عدد المستخدمين بفضل وفورات الحجم. الخطة الاحترافية ($19) هي الأكثر ربحية على مستوى الخادم الواحد ($49/شهر ربح).
+  </div>
+
+  <div class="section-title" style="margin-top: 24px;">
+    <span class="section-num">6</span>
+    ملخص الجدولين
+  </div>
+
+  <div class="two-col">
+    <table class="data-table">
+      <thead><tr><th colspan="2">جدول المستخدم - الخلاصة</th></tr></thead>
+      <tbody>
+        <tr><td>أرخص خطة مدفوعة</td><td><strong>$9/شهر</strong> (الأساسية)</td></tr>
+        <tr><td>أفضل قيمة للمستخدم</td><td><strong>$19/شهر</strong> (الاحترافية)</td></tr>
+        <tr><td>خطة مجانية متاحة</td><td><strong>نعم</strong> (7 أيام تجريبية)</td></tr>
+        <tr><td>خصم سنوي</td><td><strong>10-11%</strong></td></tr>
+        <tr><td>أقل موارد ممكنة</td><td>0.5 vCPU + 512 MB + 5 GB</td></tr>
+        <tr><td>أعلى موارد متاحة</td><td>4 vCPU + 16 GB + 200 GB</td></tr>
+      </tbody>
+    </table>
+    <table class="data-table">
+      <thead><tr><th colspan="2">جدول صاحب المنصة - الخلاصة</th></tr></thead>
+      <tbody>
+        <tr><td>تكلفة البنية التحتية</td><td><strong>$0.31-$8/مساحة</strong></td></tr>
+        <tr><td>أعلى ربح/مساحة</td><td><strong>$71</strong> (المؤسسات)</td></tr>
+        <tr><td>أعلى ربح/خادم</td><td><strong>$71</strong> (خطة واحدة)</td></tr>
+        <tr><td>متوسط هامش الربح</td><td><strong>85-94%</strong></td></tr>
+        <tr><td>نقطة التعادل</td><td><strong>3 مستخدمين</strong></td></tr>
+        <tr><td>ربح سنوي (50 مستخدم)</td><td><strong>~$12,276</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page-footer">
+    جميع الحسابات مبنية على أسعار مايو 2026 | Contabo VPS 20 كبنية تحتية | الأسعار قابلة للتغيير
+  </div>
+</div>
+
+</body>
+</html>
