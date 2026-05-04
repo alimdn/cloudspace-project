@@ -9,7 +9,7 @@ const faqs = [
   {
     question: 'What is a cloud workspace?',
     answer:
-      'A cloud workspace is a fully isolated Docker container where you get dedicated resources (CPU, RAM, storage). You can run any open-source application such as n8n, WordPress, databases, and more.',
+      'A cloud workspace is a fully isolated Docker container where you get dedicated resources (CPU, RAM, storage). You can install and run any software, tools, or applications of your choice — automation tools, web platforms, databases, development environments, and more.',
   },
   {
     question: 'Is my data protected?',
@@ -24,7 +24,7 @@ const faqs = [
   {
     question: 'Can I run any application?',
     answer:
-      'You can run any open-source application that supports Docker containers. This includes n8n, WordPress, Nextcloud, MySQL, PostgreSQL, Redis, Node.js, Python, and many more.',
+      'You can install and run any software that supports Linux environments. This includes automation tools, web platforms, databases, development frameworks, and many more. You have full root access to customize your workspace.',
   },
   {
     question: 'What happens when my subscription expires?',

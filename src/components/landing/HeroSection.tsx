@@ -51,7 +51,7 @@ export function HeroSection() {
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             Get fully isolated Docker containers with dedicated resources.
             <br className="hidden sm:block" />
-            Run any open-source app — n8n, WordPress, databases, and more.
+            Install and run any software — automation tools, CMS, databases, development environments, and more.
           </p>
 
           {/* CTA Buttons */}

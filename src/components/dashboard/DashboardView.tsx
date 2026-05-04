@@ -231,7 +231,7 @@ export function DashboardView() {
                     <div className="text-left">
                       <p className="font-medium text-sm">{ws.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {ws.platform || 'General'} · {ws.cpu} vCPU · {(Number(ws.ram) / 1024).toFixed(0)} GB RAM
+                        {ws.platform || 'Ubuntu'} · {ws.cpu} vCPU · {(Number(ws.ram) / 1024).toFixed(0)} GB RAM
                       </p>
                     </div>
                   </div>

@@ -120,7 +120,7 @@ export function WorkspaceDetailView() {
           <div>
             <h1 className="text-2xl font-bold">{workspace.name}</h1>
             <p className="text-sm text-muted-foreground">
-              {workspace.platform || 'General'} · Created {new Date(workspace.createdAt).toLocaleDateString('en-US')}
+              {workspace.platform || 'Ubuntu'} · Created {new Date(workspace.createdAt).toLocaleDateString('en-US')}
             </p>
           </div>
         </div>

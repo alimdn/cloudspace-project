@@ -12,8 +12,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "CloudSpace | Isolated Cloud Workspaces",
-  description: "Cloud platform for renting fully isolated Docker workspaces with dedicated resources. Run any open-source application of your choice.",
-  keywords: ["cloud", "Docker", "workspace", "VPS", "containers", "n8n", "WordPress"],
+  description: "Cloud platform for renting fully isolated Docker workspaces with dedicated resources. Install and run any software you choose — 24/7 uptime guaranteed.",
+  keywords: ["cloud", "Docker", "workspace", "VPS", "containers", "hosting", "cloud computing"],
   authors: [{ name: "CloudSpace" }],
   manifest: "/manifest.json",
   appleWebApp: {

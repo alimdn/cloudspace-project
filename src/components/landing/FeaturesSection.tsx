@@ -33,8 +33,8 @@ const features = [
   },
   {
     icon: Layers,
-    title: 'Diverse Applications',
-    description: 'Run n8n, WordPress, Nextcloud, databases, and many more applications.',
+    title: 'Full Control',
+    description: 'Install any software, tools, or applications inside your workspace. You have root access and complete freedom.',
   },
   {
     icon: RefreshCw,

@@ -1,7 +1,7 @@
 {
   "name": "CloudSpace",
   "short_name": "Cloud",
-  "description": "Cloud platform for renting fully isolated Docker workspaces",
+  "description": "Cloud platform for renting fully isolated Docker workspaces with dedicated resources",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

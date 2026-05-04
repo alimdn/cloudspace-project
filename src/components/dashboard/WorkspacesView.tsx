@@ -38,16 +38,11 @@ import {
 import { useToast } from '@/hooks/use-toast'
 
 const platformOptions = [
-  { value: 'general', label: 'General (Ubuntu)' },
-  { value: 'n8n', label: 'n8n' },
-  { value: 'wordpress', label: 'WordPress' },
-  { value: 'nextcloud', label: 'Nextcloud' },
-  { value: 'mysql', label: 'MySQL' },
-  { value: 'postgresql', label: 'PostgreSQL' },
-  { value: 'mongodb', label: 'MongoDB' },
-  { value: 'redis', label: 'Redis' },
-  { value: 'nodejs', label: 'Node.js' },
-  { value: 'python', label: 'Python' },
+  { value: 'ubuntu', label: 'Ubuntu 22.04 LTS' },
+  { value: 'debian', label: 'Debian 12' },
+  { value: 'alpine', label: 'Alpine Linux 3.19' },
+  { value: 'centos', label: 'CentOS Stream 9' },
+  { value: 'fedora', label: 'Fedora 39' },
 ]
 
 export function WorkspacesView() {
@@ -169,19 +164,19 @@ export function WorkspacesView() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Create New Workspace</DialogTitle>
-              <DialogDescription>Configure your new workspace settings</DialogDescription>
+              <DialogDescription>Configure your new workspace with resources and an OS</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Workspace Name</Label>
                 <Input
-                  placeholder="e.g. My n8n workspace"
+                  placeholder="e.g. My Workspace"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Platform / Application</Label>
+                <Label>Operating System</Label>
                 <Select value={newPlatform} onValueChange={setNewPlatform}>
                   <SelectTrigger>
                     <SelectValue />
@@ -320,7 +315,7 @@ export function WorkspacesView() {
                         {ws.name}
                       </button>
                       <p className="text-xs text-muted-foreground">
-                        {ws.platform ? platformOptions.find((p) => p.value === ws.platform)?.label || ws.platform : 'General'}
+                        {ws.platform ? platformOptions.find((p) => p.value === ws.platform)?.label || ws.platform : 'Ubuntu'}
                       </p>
                     </div>
                   </div>
