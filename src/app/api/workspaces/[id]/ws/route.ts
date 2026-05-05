@@ -1,17 +1,15 @@
 import { getAuthUser } from '@/lib/auth'
 import { notFoundResponse, forbiddenResponse, unauthorizedResponse } from '@/lib/api-response'
 import { db } from '@/lib/db'
-import { getContainerStats, isDockerAvailable } from '@/lib/docker'
+import { getContainerStats, getContainerDiskUsage, getContainerState, isDockerAvailable } from '@/lib/docker'
 
 /**
  * SSE endpoint: GET /api/workspaces/[id]/ws
  *
  * Streams container stats every 3 seconds via Server-Sent Events.
  * Auto-disconnects after 5 minutes (100 * 3s).
- *
- * The client should connect with:
- *   const es = new EventSource('/api/workspaces/{id}/ws')
- *   es.onmessage = (e) => { const data = JSON.parse(e.data) }
+ * Disk usage now measured via real filesystem (`df`) inside the container.
+ * Checks OOM kill status each cycle.
  */
 export async function GET(
   request: Request,
@@ -64,12 +62,32 @@ export async function GET(
 
           if (dockerAvailable && workspace.containerId && workspace.status === 'running') {
             const stats = await getContainerStats(workspace.containerId)
+
+            // Check OOM status every cycle
+            const containerState = await getContainerState(workspace.containerId)
+            const oomKilled = containerState?.oomKilled || false
+
+            if (oomKilled) {
+              await db.workspace.update({
+                where: { id },
+                data: { status: 'error' },
+              })
+              controller.enqueue(
+                encoder.encode(`event: oom\ndata: ${JSON.stringify({ type: 'oom', message: 'Container was killed due to out of memory' })}\n\n`)
+              )
+            }
+
+            // Get real disk usage every 5th cycle (~15s) to avoid overhead
+            const diskUsage = count % 5 === 0
+              ? await getContainerDiskUsage(workspace.containerId)
+              : null
+
             if (stats) {
               const ramPercent = stats.memory_limit_mb > 0
                 ? Math.round((stats.memory_usage_mb / stats.memory_limit_mb) * 100)
                 : 0
-              const diskPercent = stats.block_write_mb > 0
-                ? Math.min(Math.round(stats.block_read_mb + stats.block_write_mb), 100)
+              const diskPercent = diskUsage
+                ? diskUsage.percent
                 : 0
 
               data = {
@@ -80,11 +98,14 @@ export async function GET(
                 network: { in: stats.network_rx_bytes, out: stats.network_tx_bytes },
                 memoryUsageMb: stats.memory_usage_mb,
                 memoryLimitMb: stats.memory_limit_mb,
+                diskUsedMb: diskUsage?.used_mb || 0,
+                diskTotalMb: diskUsage?.total_mb || (parseFloat(workspace.disk) * 1024) || 10240,
                 containerAvailable: true,
+                oomKilled,
                 timestamp: Date.now(),
               }
 
-              // Persist every 10th reading (~30s) to avoid DB bloat
+              // Persist every 10th reading (~30s)
               if (count % 10 === 0) {
                 try {
                   await db.usageRecord.create({
@@ -112,7 +133,10 @@ export async function GET(
                 network: { in: 0, out: 0 },
                 memoryUsageMb: 0,
                 memoryLimitMb: parseFloat(workspace.ram) || 1024,
+                diskUsedMb: 0,
+                diskTotalMb: (parseFloat(workspace.disk) * 1024) || 10240,
                 containerAvailable: false,
+                oomKilled,
                 timestamp: Date.now(),
               }
             }
@@ -125,7 +149,10 @@ export async function GET(
               network: { in: 0, out: 0 },
               memoryUsageMb: 0,
               memoryLimitMb: parseFloat(workspace.ram) || 1024,
+              diskUsedMb: 0,
+              diskTotalMb: (parseFloat(workspace.disk) * 1024) || 10240,
               containerAvailable: !!workspace.containerId,
+              oomKilled: false,
               timestamp: Date.now(),
             }
           }
@@ -152,7 +179,7 @@ export async function GET(
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no', // Disable nginx buffering
+      'X-Accel-Buffering': 'no',
     },
   })
 }

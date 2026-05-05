@@ -17,6 +17,7 @@ import {
   removeContainer,
   isDockerAvailable,
 } from '@/lib/docker'
+import { getPlanLimits, validateSingleWorkspaceResources, validateAggregateResources } from '@/lib/plan-limits'
 
 export async function GET(
   request: Request,
@@ -35,7 +36,6 @@ export async function GET(
       return notFoundResponse('Workspace not found')
     }
 
-    // Ownership verification
     if (workspace.userId !== authUser.userId) {
       return forbiddenResponse('You do not have access to this workspace')
     }
@@ -78,6 +78,37 @@ export async function PATCH(
     }
 
     const { status, cpu, ram, disk } = parsed.data
+    const plan = authUser.plan || 'free'
+
+    // ── Validate resource changes against plan limits ──
+    if (cpu || ram || disk) {
+      const newCpu = cpu ? parseFloat(cpu) : parseFloat(workspace.cpu || '1')
+      const newRam = ram ? parseInt(ram, 10) : parseInt(workspace.ram || '1024', 10)
+      const newDisk = disk ? parseInt(disk, 10) : parseInt(workspace.disk || '10', 10)
+
+      // Check per-workspace limits
+      const singleValidation = validateSingleWorkspaceResources(plan, newCpu, newRam, newDisk)
+      if (singleValidation) {
+        return errorResponse(singleValidation, 403)
+      }
+
+      // Check aggregate limits (exclude this workspace from current totals)
+      const allUserWorkspaces = await db.workspace.findMany({
+        where: { userId: authUser.userId, id: { not: id } },
+        select: { cpu: true, ram: true, disk: true },
+      })
+
+      const otherTotalCpu = allUserWorkspaces.reduce((sum, ws) => sum + parseFloat(ws.cpu || '0'), 0)
+      const otherTotalRam = allUserWorkspaces.reduce((sum, ws) => sum + parseInt(ws.ram || '0', 10), 0)
+      const otherTotalDisk = allUserWorkspaces.reduce((sum, ws) => sum + parseInt(ws.disk || '0', 10), 0)
+
+      const aggregateValidation = validateAggregateResources(
+        plan, otherTotalCpu, otherTotalRam, otherTotalDisk, newCpu, newRam, newDisk
+      )
+      if (aggregateValidation) {
+        return errorResponse(aggregateValidation, 403)
+      }
+    }
 
     // ── Docker status operations ──
     if (status && workspace.containerId) {
@@ -100,10 +131,8 @@ export async function PATCH(
               break
             }
             case 'creating': {
-              // "creating" status means restart
               const restarted = await restartContainer(workspace.containerId, 5)
               if (restarted) {
-                // After restart succeeds, update to running
                 await db.workspace.update({
                   where: { id },
                   data: { status: 'running' },
@@ -125,12 +154,11 @@ export async function PATCH(
           console.error(`[Workspace] Docker error during status change:`, msg)
         }
       } else {
-        // Docker not available — simulate status changes for dev
         console.warn(`[Workspace] Docker not available, simulating status change to ${status}`)
       }
     }
 
-    // ── Resource limit updates (item #82) ──
+    // ── Resource limit updates ──
     const resourcesChanged =
       (cpu && cpu !== workspace.cpu) ||
       (ram && ram !== workspace.ram) ||
@@ -208,7 +236,6 @@ export async function DELETE(
         } catch (dockerError) {
           const msg = dockerError instanceof Error ? dockerError.message : String(dockerError)
           console.error(`[Workspace] Docker error during delete:`, msg)
-          // Continue with DB deletion even if Docker removal fails
         }
       }
     }

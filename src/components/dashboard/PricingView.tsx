@@ -13,50 +13,66 @@ const plans = [
     id: 'free',
     name: 'Free',
     price: '0',
-    features: ['1 Workspace', '1 vCPU', '1 GB RAM', '10 GB Disk', 'Email Support'],
+    features: ['2 Workspaces', '1 vCPU', '1 GB RAM', '10 GB Disk', '100 Pids', 'Community Support'],
   },
   {
     id: 'basic',
     name: 'Basic',
     price: '9',
-    features: ['3 Workspaces', '2 vCPU', '4 GB RAM', '50 GB Disk', '24/7 Support', 'Daily Backups'],
+    features: ['5 Workspaces', '2 vCPU per workspace', '4 GB RAM per workspace', '50 GB Disk per workspace', 'Total: 4 vCPU / 8 GB RAM / 100 GB Disk', '256 Pids', 'Email Support', 'Daily Backups'],
   },
   {
     id: 'pro',
     name: 'Pro',
     price: '29',
-    features: ['10 Workspaces', '4 vCPU', '16 GB RAM', '200 GB Disk', 'Priority Support', 'Backups every 6 hours', 'Custom Subdomain'],
+    features: ['10 Workspaces', '4 vCPU per workspace', '16 GB RAM per workspace', '200 GB Disk per workspace', 'Total: 8 vCPU / 32 GB RAM / 500 GB Disk', '512 Pids', 'Priority Support', 'Backups every 6 hours', 'Custom Subdomain'],
   },
   {
     id: 'business',
     name: 'Business',
     price: '59',
-    features: ['25 Workspaces', '8 vCPU', '32 GB RAM', '500 GB Disk', 'Account Manager', 'Hourly Backups', 'Custom Subdomain', '99.9% SLA'],
+    features: ['25 Workspaces', '8 vCPU per workspace', '32 GB RAM per workspace', '500 GB Disk per workspace', 'Total: 16 vCPU / 64 GB RAM / 1 TB Disk', '1024 Pids', 'Account Manager', 'Hourly Backups', '99.9% SLA'],
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
     price: '99',
-    features: ['Unlimited Workspaces', '16 vCPU', '64 GB RAM', '1 TB Disk', 'Dedicated Support', 'Continuous Backups', 'Custom Domain', '99.99% SLA', 'Advanced API'],
+    features: ['100 Workspaces', '16 vCPU per workspace', '64 GB RAM per workspace', '1 TB Disk per workspace', 'Total: 64 vCPU / 256 GB RAM / 5 TB Disk', '4096 Pids', 'Dedicated Support', 'Continuous Backups', 'Custom Domain', '99.99% SLA', 'Advanced API'],
   },
 ]
 
 const comparisonFeatures = [
   {
     name: 'Workspaces',
-    values: ['1', '3', '10', '25', 'Unlimited'],
+    values: ['2', '5', '10', '25', '100'],
   },
   {
-    name: 'CPU',
+    name: 'CPU (per workspace)',
     values: ['1 vCPU', '2 vCPU', '4 vCPU', '8 vCPU', '16 vCPU'],
   },
   {
-    name: 'RAM',
-    values: ['1 GB', '2 GB', '4 GB', '8 GB', '16 GB'],
+    name: 'RAM (per workspace)',
+    values: ['1 GB', '4 GB', '16 GB', '32 GB', '64 GB'],
   },
   {
-    name: 'Storage',
-    values: ['10 GB', '25 GB', '50 GB', '100 GB', '500 GB'],
+    name: 'Disk (per workspace)',
+    values: ['10 GB', '50 GB', '200 GB', '500 GB', '1 TB'],
+  },
+  {
+    name: 'Total CPU',
+    values: ['1.5', '4', '8', '16', '64'],
+  },
+  {
+    name: 'Total RAM',
+    values: ['1.5 GB', '8 GB', '32 GB', '64 GB', '256 GB'],
+  },
+  {
+    name: 'Total Disk',
+    values: ['15 GB', '100 GB', '500 GB', '1 TB', '5 TB'],
+  },
+  {
+    name: 'Max Processes',
+    values: ['100', '256', '512', '1024', '4096'],
   },
   {
     name: 'Support',
@@ -69,7 +85,7 @@ const comparisonFeatures = [
   },
   {
     name: 'Backups',
-    values: ['Daily', 'Weekly', 'Daily', 'Daily', 'Real-time'],
+    values: ['None', 'Daily', 'Every 6h', 'Hourly', 'Continuous'],
   },
   {
     name: 'API Access',

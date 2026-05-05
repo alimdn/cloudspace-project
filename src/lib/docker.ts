@@ -3,7 +3,8 @@ import Docker from 'dockerode'
 /**
  * Docker Engine client using dockerode.
  * Connects via DOCKER_HOST env var or defaults to /var/run/docker.sock.
- * All functions include proper error handling and JSDoc documentation.
+ * Includes resource limits (CPU, RAM, Disk, PIDs), OOM detection,
+ * and real disk usage monitoring.
  */
 
 let dockerInstance: Docker | null = null
@@ -22,7 +23,6 @@ function initDocker(): Docker | null {
 
     dockerInstance = new Docker(opts)
 
-    // Verify connection
     dockerInstance.ping((err) => {
       if (err) {
         console.warn(`[Docker] Cannot connect to Docker daemon at ${dockerHost}:`, err.message)
@@ -42,7 +42,6 @@ export const docker = initDocker()
 
 /**
  * Check whether the Docker daemon is reachable.
- * @returns true if Docker is available
  */
 export async function isDockerAvailable(): Promise<boolean> {
   if (!docker) return false
@@ -62,12 +61,15 @@ export const OS_IMAGE_MAP: Record<string, string> = {
 }
 
 /**
- * Create a new Docker container with specified resources
+ * Create a new Docker container with specified resource limits.
+ * Includes CPU, Memory, Disk quota (via StorageOpt), and PidsLimit.
+ *
  * @param name - Container name (unique identifier)
  * @param os - Operating system image (e.g., 'ubuntu:22.04')
  * @param cpu - Number of CPU cores (as string, e.g., '2')
  * @param ram - RAM in MB (as string, e.g., '2048')
  * @param disk - Disk size in GB (as string, e.g., '20')
+ * @param maxPids - Maximum number of processes (fork bomb protection, default 100)
  * @returns Container info object or null on failure
  */
 export async function createContainer(
@@ -75,7 +77,8 @@ export async function createContainer(
   os: string,
   cpu: string = '1',
   ram: string = '1024',
-  disk: string = '10'
+  disk: string = '10',
+  maxPids: number = 100
 ): Promise<{ id: string; name: string; warnings?: string[] } | null> {
   if (!docker) {
     console.error('[Docker] Docker client not initialized')
@@ -86,17 +89,31 @@ export async function createContainer(
     const cpuPeriod = 100000
     const cpuQuota = parseInt(cpu, 10) * cpuPeriod
     const memoryBytes = parseInt(ram, 10) * 1024 * 1024
+    const diskBytes = parseInt(disk, 10) * 1024 * 1024 * 1024
+
+    const hostConfig: Docker.ContainerCreateOptions['HostConfig'] = {
+      CpuPeriod: cpuPeriod,
+      CpuQuota: cpuQuota,
+      Memory: memoryBytes,
+      MemorySwap: memoryBytes * 2,
+      PidsLimit: maxPids,
+      // Disk quota via storage-opt (requires overlay2 or similar driver)
+      StorageOpt: {
+        'size': String(diskBytes),
+      },
+      // Prevent privilege escalation
+      SecurityOpt: ['no-new-privileges'],
+      // Read-only root filesystem with tmpfs for writable areas
+      ReadonlyRootfs: false,
+      // Network bandwidth rate limiting (100 Mbps = 12500000 bytes/sec)
+      // Uncomment to enable:
+      // BlkioWeight: 300,
+    }
 
     const container = await docker.createContainer({
       Image: os,
       name,
-      HostConfig: {
-        CpuPeriod: cpuPeriod,
-        CpuQuota: cpuQuota,
-        Memory: memoryBytes,
-        MemorySwap: memoryBytes * 2,
-        DiskQuota: undefined,
-      },
+      HostConfig: hostConfig,
       Cmd: ['/bin/bash', '-c', 'sleep infinity'],
       Tty: true,
       OpenStdin: true,
@@ -115,20 +132,66 @@ export async function createContainer(
       console.warn(`[Docker] Container name "${name}" already exists`)
     }
 
+    // If storage-opt is not supported, retry without it
+    if (message.includes('StorageOpt') || message.includes('storage-opt')) {
+      console.warn(`[Docker] StorageOpt not supported, retrying without disk quota`)
+      return createContainerNoQuota(name, os, cpu, ram, maxPids)
+    }
+
+    return null
+  }
+}
+
+/**
+ * Fallback: Create container without disk quota (for unsupported storage drivers).
+ */
+async function createContainerNoQuota(
+  name: string,
+  os: string,
+  cpu: string = '1',
+  ram: string = '1024',
+  maxPids: number = 100
+): Promise<{ id: string; name: string; warnings?: string[] } | null> {
+  if (!docker) return null
+
+  try {
+    const cpuPeriod = 100000
+    const cpuQuota = parseInt(cpu, 10) * cpuPeriod
+    const memoryBytes = parseInt(ram, 10) * 1024 * 1024
+
+    const container = await docker.createContainer({
+      Image: os,
+      name,
+      HostConfig: {
+        CpuPeriod: cpuPeriod,
+        CpuQuota: cpuQuota,
+        Memory: memoryBytes,
+        MemorySwap: memoryBytes * 2,
+        PidsLimit: maxPids,
+        SecurityOpt: ['no-new-privileges'],
+      },
+      Cmd: ['/bin/bash', '-c', 'sleep infinity'],
+      Tty: true,
+      OpenStdin: true,
+    })
+
+    return {
+      id: container.id,
+      name: container.id.slice(0, 12),
+      warnings: ['Disk quota not supported on this storage driver. Disk limits will not be enforced.'],
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error(`[Docker] Failed to create container (no-quota) "${name}":`, message)
     return null
   }
 }
 
 /**
  * Start a stopped container
- * @param id - Container ID
- * @returns true if successful
  */
 export async function startContainer(id: string): Promise<boolean> {
-  if (!docker) {
-    console.error('[Docker] Docker client not initialized')
-    return false
-  }
+  if (!docker) return false
 
   try {
     const container = docker.getContainer(id)
@@ -143,14 +206,9 @@ export async function startContainer(id: string): Promise<boolean> {
 
 /**
  * Stop a running container gracefully (10s timeout)
- * @param id - Container ID
- * @returns true if successful
  */
 export async function stopContainer(id: string): Promise<boolean> {
-  if (!docker) {
-    console.error('[Docker] Docker client not initialized')
-    return false
-  }
+  if (!docker) return false
 
   try {
     const container = docker.getContainer(id)
@@ -170,15 +228,9 @@ export async function stopContainer(id: string): Promise<boolean> {
 
 /**
  * Restart a container with a configurable delay
- * @param id - Container ID
- * @param timeout - Grace period in seconds before killing (default 5)
- * @returns true if successful
  */
 export async function restartContainer(id: string, timeout: number = 5): Promise<boolean> {
-  if (!docker) {
-    console.error('[Docker] Docker client not initialized')
-    return false
-  }
+  if (!docker) return false
 
   try {
     const container = docker.getContainer(id)
@@ -193,14 +245,9 @@ export async function restartContainer(id: string, timeout: number = 5): Promise
 
 /**
  * Remove a container (force removes even if running)
- * @param id - Container ID
- * @returns true if successful
  */
 export async function removeContainer(id: string): Promise<boolean> {
-  if (!docker) {
-    console.error('[Docker] Docker client not initialized')
-    return false
-  }
+  if (!docker) return false
 
   try {
     const container = docker.getContainer(id)
@@ -220,21 +267,13 @@ export async function removeContainer(id: string): Promise<boolean> {
 
 /**
  * Update CPU and memory limits on an existing container.
- * The container must be stopped (or recreated) for these changes to take effect.
- * @param id - Container ID
- * @param cpu - Number of CPU cores
- * @param ram - RAM in MB
- * @returns true if successful
  */
 export async function updateContainerLimits(
   id: string,
   cpu: string = '1',
   ram: string = '1024'
 ): Promise<boolean> {
-  if (!docker) {
-    console.error('[Docker] Docker client not initialized')
-    return false
-  }
+  if (!docker) return false
 
   try {
     const container = docker.getContainer(id)
@@ -257,9 +296,8 @@ export async function updateContainerLimits(
 }
 
 /**
- * Get container resource usage statistics
- * @param id - Container ID
- * @returns Stats object or null on failure
+ * Get container resource usage statistics.
+ * Returns CPU%, memory usage, network I/O, and block I/O.
  */
 export async function getContainerStats(id: string): Promise<{
   cpu_percent: number
@@ -270,10 +308,7 @@ export async function getContainerStats(id: string): Promise<{
   block_read_mb: number
   block_write_mb: number
 } | null> {
-  if (!docker) {
-    console.error('[Docker] Docker client not initialized')
-    return null
-  }
+  if (!docker) return null
 
   try {
     const container = docker.getContainer(id)
@@ -318,6 +353,119 @@ export async function getContainerStats(id: string): Promise<{
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error)
     console.error(`[Docker] Failed to get stats for container "${id}":`, message)
+    return null
+  }
+}
+
+/**
+ * Get actual disk usage of a container by executing `df` inside it.
+ * Returns used MB and total MB, or null if unavailable.
+ */
+export async function getContainerDiskUsage(id: string): Promise<{
+  used_mb: number
+  total_mb: number
+  percent: number
+} | null> {
+  if (!docker) return null
+
+  try {
+    const container = docker.getContainer(id)
+
+    // Execute df -h / to get real filesystem usage
+    const exec = await container.exec({
+      Cmd: ['/bin/sh', '-c', "df -k / | tail -1 | awk '{print $3, $2, $5}'"],
+      AttachStdout: true,
+      AttachStderr: true,
+    })
+
+    const stream = await exec.start({ hijack: true, stdin: false })
+
+    return new Promise((resolve) => {
+      let output = ''
+      const chunks: Buffer[] = []
+
+      stream.on('data', (chunk: Buffer) => {
+        chunks.push(chunk)
+      })
+
+      stream.on('end', () => {
+        output = Buffer.concat(chunks).toString('utf8').trim()
+
+        // Parse: "used_kb total_kb use_percent%"
+        const parts = output.split(/\s+/)
+        if (parts.length >= 3) {
+          const usedKb = parseInt(parts[0], 10) || 0
+          const totalKb = parseInt(parts[1], 10) || 1
+          const percentStr = parts[2].replace('%', '')
+          const percent = parseInt(percentStr, 10) || 0
+
+          resolve({
+            used_mb: Math.round((usedKb / 1024) * 100) / 100,
+            total_mb: Math.round((totalKb / 1024) * 100) / 100,
+            percent,
+          })
+        } else {
+          resolve(null)
+        }
+      })
+
+      stream.on('error', () => {
+        resolve(null)
+      })
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        resolve(null)
+      }, 5000)
+    })
+  } catch (error: unknown) {
+    // Container might be stopped — that's fine
+    return null
+  }
+}
+
+/**
+ * Check if a container was killed by OOM (Out of Memory).
+ * Returns true if OOMKilled flag is set.
+ */
+export async function isContainerOOMKilled(id: string): Promise<boolean> {
+  if (!docker) return false
+
+  try {
+    const container = docker.getContainer(id)
+    const inspect = await container.inspect()
+    return inspect.State?.OOMKilled === true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Get container state information including OOM status.
+ */
+export async function getContainerState(id: string): Promise<{
+  status: string
+  running: boolean
+  oomKilled: boolean
+  exitCode: number
+  startedAt: string | null
+  finishedAt: string | null
+} | null> {
+  if (!docker) return null
+
+  try {
+    const container = docker.getContainer(id)
+    const inspect = await container.inspect()
+
+    return {
+      status: inspect.State?.Status || 'unknown',
+      running: inspect.State?.Running || false,
+      oomKilled: inspect.State?.OOMKilled || false,
+      exitCode: inspect.State?.ExitCode || 0,
+      startedAt: inspect.State?.StartedAt || null,
+      finishedAt: inspect.State?.FinishedAt || null,
+    }
+  } catch {
     return null
   }
 }

@@ -2,17 +2,9 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 import { createWorkspaceSchema } from '@/lib/validators'
-import { successResponse, errorResponse, unauthorizedResponse, rateLimitResponse } from '@/lib/api-response'
-import { createContainer, OS_IMAGE_MAP, isDockerAvailable, startContainer } from '@/lib/docker'
-
-// Plan-based workspace limits
-const WORKSPACE_LIMITS: Record<string, number> = {
-  free: 2,
-  basic: 5,
-  pro: 15,
-  business: 50,
-  enterprise: 200,
-}
+import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response'
+import { createContainer, OS_IMAGE_MAP, isDockerAvailable } from '@/lib/docker'
+import { getPlanLimits, validateSingleWorkspaceResources, validateAggregateResources } from '@/lib/plan-limits'
 
 export async function GET(request: Request) {
   try {
@@ -50,19 +42,46 @@ export async function POST(request: Request) {
     }
 
     const { name, platform, cpu, ram, disk } = parsed.data
+    const plan = authUser.plan || 'free'
+    const limits = getPlanLimits(plan)
 
-    // Check workspace limit based on plan
+    // ── Check 1: Workspace count limit ──
     const currentCount = await db.workspace.count({
       where: { userId: authUser.userId },
     })
 
-    const limit = WORKSPACE_LIMITS[authUser.plan] || WORKSPACE_LIMITS.free
-
-    if (currentCount >= limit) {
+    if (currentCount >= limits.maxWorkspaces) {
       return errorResponse(
-        `You have reached the workspace limit for your plan (${limit}). Please upgrade to create more.`,
+        `Workspace limit reached for your plan (${limits.maxWorkspaces}). Please upgrade to create more.`,
         403
       )
+    }
+
+    // ── Check 2: Per-workspace resource size limits ──
+    const cpuNum = parseFloat(cpu || '1')
+    const ramNum = parseInt(ram || '1024', 10)
+    const diskNum = parseInt(disk || '10', 10)
+
+    const singleValidation = validateSingleWorkspaceResources(plan, cpuNum, ramNum, diskNum)
+    if (singleValidation) {
+      return errorResponse(singleValidation, 403)
+    }
+
+    // ── Check 3: Aggregate total resource limits ──
+    const existingWorkspaces = await db.workspace.findMany({
+      where: { userId: authUser.userId },
+      select: { cpu: true, ram: true, disk: true },
+    })
+
+    const existingTotalCpu = existingWorkspaces.reduce((sum, ws) => sum + parseFloat(ws.cpu || '0'), 0)
+    const existingTotalRam = existingWorkspaces.reduce((sum, ws) => sum + parseInt(ws.ram || '0', 10), 0)
+    const existingTotalDisk = existingWorkspaces.reduce((sum, ws) => sum + parseInt(ws.disk || '0', 10), 0)
+
+    const aggregateValidation = validateAggregateResources(
+      plan, existingTotalCpu, existingTotalRam, existingTotalDisk, cpuNum, ramNum, diskNum
+    )
+    if (aggregateValidation) {
+      return errorResponse(aggregateValidation, 403)
     }
 
     // ── Create DB record first ──
@@ -91,7 +110,8 @@ export async function POST(request: Request) {
           imageName,
           workspace.cpu,
           workspace.ram,
-          workspace.disk
+          workspace.disk,
+          limits.maxPids
         )
 
         if (container) {
@@ -100,13 +120,12 @@ export async function POST(request: Request) {
             where: { id: workspace.id },
             data: {
               containerId: container.id,
-              status: 'stopped', // Created but not yet started
+              status: 'stopped',
             },
           })
 
           console.log(`[Workspace] Container ${container.id.slice(0, 12)} created for workspace ${workspace.id}`)
         } else {
-          // Docker create failed — mark error but keep DB record
           await db.workspace.update({
             where: { id: workspace.id },
             data: { status: 'error' },
@@ -117,14 +136,12 @@ export async function POST(request: Request) {
         const msg = dockerError instanceof Error ? dockerError.message : String(dockerError)
         console.error(`[Workspace] Docker error during workspace creation:`, msg)
 
-        // Update status to error but keep the record
         await db.workspace.update({
           where: { id: workspace.id },
           data: { status: 'error' },
         })
       }
     } else {
-      // Docker not available — create workspace record without container
       console.warn(`[Workspace] Docker not available, workspace created in simulation mode`)
       await db.workspace.update({
         where: { id: workspace.id },

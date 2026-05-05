@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse, forbiddenResponse } from '@/lib/api-response'
-import { getContainerStats, isDockerAvailable } from '@/lib/docker'
+import { getContainerStats, getContainerDiskUsage, getContainerState, isDockerAvailable } from '@/lib/docker'
 
 /**
  * GET /api/workspaces/[id]/stats
  *
  * Returns real-time container resource usage (CPU, RAM, Disk, Network).
- * Also persists each reading as a UsageRecord for historical charts.
+ * Disk usage is now measured via `df` inside the container (real filesystem usage).
+ * Also checks OOM kill status and persists usage records.
  */
 export async function GET(
   request: Request,
@@ -40,7 +41,10 @@ export async function GET(
         network: { in: 0, out: 0 },
         memoryUsageMb: 0,
         memoryLimitMb: parseFloat(workspace.ram) || 1024,
+        diskUsedMb: 0,
+        diskTotalMb: parseFloat(workspace.disk) * 1024 || 10240,
         containerAvailable: !!workspace.containerId,
+        oomKilled: false,
       })
     }
 
@@ -50,22 +54,45 @@ export async function GET(
       try {
         const stats = await getContainerStats(workspace.containerId)
 
+        // Check OOM status
+        const containerState = await getContainerState(workspace.containerId)
+        const oomKilled = containerState?.oomKilled || false
+
+        // If container was OOM killed, mark workspace as error
+        if (oomKilled) {
+          await db.workspace.update({
+            where: { id },
+            data: { status: 'error' },
+          })
+          console.warn(`[Stats] Workspace ${id} was OOM killed`)
+        }
+
+        // Get real disk usage
+        const diskUsage = await getContainerDiskUsage(workspace.containerId)
+
         if (stats) {
           const ramPercent = stats.memory_limit_mb > 0
             ? Math.round((stats.memory_usage_mb / stats.memory_limit_mb) * 100)
             : 0
 
+          const diskPercent = diskUsage
+            ? diskUsage.percent
+            : 0
+
           const response = {
             cpu: stats.cpu_percent,
             ram: ramPercent,
-            disk: stats.block_write_mb > 0 ? Math.min(Math.round(stats.block_read_mb + stats.block_write_mb), 100) : 0,
+            disk: diskPercent,
             network: {
               in: stats.network_rx_bytes,
               out: stats.network_tx_bytes,
             },
             memoryUsageMb: stats.memory_usage_mb,
             memoryLimitMb: stats.memory_limit_mb,
+            diskUsedMb: diskUsage?.used_mb || 0,
+            diskTotalMb: diskUsage?.total_mb || (parseFloat(workspace.disk) * 1024) || 10240,
             containerAvailable: true,
+            oomKilled,
           }
 
           // Persist historical record
@@ -75,7 +102,7 @@ export async function GET(
                 workspaceId: workspace.id,
                 cpu: stats.cpu_percent,
                 ram: ramPercent,
-                disk: response.disk,
+                disk: diskPercent,
                 networkIn: stats.network_rx_bytes,
                 networkOut: stats.network_tx_bytes,
                 memoryUsageMb: stats.memory_usage_mb,
@@ -94,7 +121,7 @@ export async function GET(
       }
     }
 
-    // Fallback: Docker not available — return zeroed stats
+    // Fallback: Docker not available
     return successResponse({
       cpu: 0,
       ram: 0,
@@ -102,7 +129,10 @@ export async function GET(
       network: { in: 0, out: 0 },
       memoryUsageMb: 0,
       memoryLimitMb: parseFloat(workspace.ram) || 1024,
+      diskUsedMb: 0,
+      diskTotalMb: parseFloat(workspace.disk) * 1024 || 10240,
       containerAvailable: !!workspace.containerId,
+      oomKilled: false,
     })
   } catch (error) {
     console.error('Workspace stats error:', error)
