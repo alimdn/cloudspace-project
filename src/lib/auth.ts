@@ -27,6 +27,18 @@ export async function signToken(payload: JWTPayload): Promise<string> {
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
+    // Check token blacklist (logout invalidation)
+    try {
+      const { isBlacklisted } = await import('@/lib/redis')
+      const blacklisted = await isBlacklisted(token)
+      if (blacklisted) {
+        console.log('[Auth] Token is blacklisted')
+        return null
+      }
+    } catch {
+      // Redis not available — skip blacklist check
+    }
+
     const secret = getSecret()
     const { payload } = await jwtVerify(token, secret)
     return payload as unknown as JWTPayload

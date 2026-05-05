@@ -44,6 +44,22 @@ export function RegisterForm() {
       toast({ title: 'Error', description: 'Password must be at least 8 characters', variant: 'destructive' })
       return
     }
+    if (!/[A-Z]/.test(password)) {
+      toast({ title: 'Error', description: 'Password must contain at least one uppercase letter', variant: 'destructive' })
+      return
+    }
+    if (!/[0-9]/.test(password)) {
+      toast({ title: 'Error', description: 'Password must contain at least one number', variant: 'destructive' })
+      return
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      toast({ title: 'Error', description: 'Password must contain at least one special character', variant: 'destructive' })
+      return
+    }
+    if (name.length < 2) {
+      toast({ title: 'Error', description: 'Name must be at least 2 characters', variant: 'destructive' })
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/register', {

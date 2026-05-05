@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 import { updateWorkspaceSchema } from '@/lib/validators'
@@ -17,7 +16,7 @@ import {
   removeContainer,
   isDockerAvailable,
 } from '@/lib/docker'
-import { getPlanLimits, validateSingleWorkspaceResources, validateAggregateResources } from '@/lib/plan-limits'
+import { validateSingleWorkspaceResources, validateAggregateResources } from '@/lib/plan-limits'
 
 export async function GET(
   request: Request,

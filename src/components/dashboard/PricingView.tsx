@@ -137,8 +137,9 @@ export function PricingView() {
           title: 'Checkout Initiated',
           description: `Redirecting to payment for ${plans.find(p => p.id === planId)?.name} plan...`,
         })
-        // In production, redirect to Stripe checkout:
-        // if (json.data?.url) window.location.href = json.data.url
+        if (json.data?.url) {
+          window.location.href = json.data.url
+        }
       } else {
         toast({ title: 'Error', description: json.error || 'Failed to initiate checkout', variant: 'destructive' })
       }

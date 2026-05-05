@@ -20,8 +20,8 @@ interface InvoiceData {
 interface PaymentMethod {
   type: string
   last4: string
-  expiryMonth: number
-  expiryYear: number
+  expMonth: number
+  expYear: number
 }
 
 export function BillingView() {
@@ -171,7 +171,7 @@ export function BillingView() {
                 <div>
                   <p className="text-sm font-medium">**** **** **** {paymentMethod.last4}</p>
                   <p className="text-xs text-muted-foreground">
-                    Expires {String(paymentMethod.expiryMonth).padStart(2, '0')}/{paymentMethod.expiryYear}
+                    Expires {String(paymentMethod.expMonth).padStart(2, '0')}/{paymentMethod.expYear}
                   </p>
                 </div>
               </div>

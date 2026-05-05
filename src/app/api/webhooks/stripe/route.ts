@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { stripe, PLAN_NAMES } from '@/lib/stripe'
+import { stripe } from '@/lib/stripe'
 import { db } from '@/lib/db'
 import { Plan } from '@prisma/client'
 
@@ -167,7 +167,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       data: {
         userId: user.id,
         amount,
-        plan: PLAN_NAMES[planId] || planId,
+        plan: planId,
         status: 'paid',
         stripeInvoiceId: session.id,
       },
@@ -285,11 +285,11 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   try {
     const stripeInvoiceId = invoice.id
     const customerId = invoice.customer as string
-    const subscriptionId = invoice.parent?.subscription_details?.subscription
-      ? typeof invoice.parent.subscription_details.subscription === 'string'
-        ? invoice.parent.subscription_details.subscription
-        : invoice.parent.subscription_details.subscription.id
-      : null
+    // Use type assertion for Stripe Invoice subscription field
+    const invoiceData = invoice as unknown as { subscription?: string | { id?: string } }
+    const subscriptionId = (typeof invoiceData.subscription === 'string')
+      ? invoiceData.subscription
+      : invoiceData.subscription?.id || null
 
     // Find subscription to get userId
     let userId: string | null = null
@@ -340,7 +340,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
         data: {
           userId,
           amount,
-          plan: PLAN_NAMES[planFromSub] || planFromSub,
+          plan: planFromSub,
           status: 'failed',
           stripeInvoiceId,
         },

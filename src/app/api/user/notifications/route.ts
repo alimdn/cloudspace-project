@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { successResponse, unauthorizedResponse, errorResponse } from '@/lib/api-response'
 

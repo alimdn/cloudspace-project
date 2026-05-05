@@ -28,8 +28,10 @@ export function DashboardView() {
       try {
         const res = await fetch('/api/workspaces')
         if (res.ok) {
-          const data = await res.json()
-          setWorkspaces(data)
+          const json = await res.json()
+          if (json.success && Array.isArray(json.data)) {
+            setWorkspaces(json.data)
+          }
         }
       } catch {
         // Clear workspaces on error

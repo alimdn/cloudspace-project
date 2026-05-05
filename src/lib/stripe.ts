@@ -11,7 +11,7 @@ import { logger } from '@/lib/logger'
 const secretKey = process.env.STRIPE_SECRET_KEY
 
 if (!secretKey) {
-  logger.warn('Stripe] STRIPE_SECRET_KEY is not configured. Stripe features will be unavailable.')
+  logger.warn('[Stripe] STRIPE_SECRET_KEY is not configured. Stripe features will be unavailable.')
 }
 
 export const stripe = secretKey
@@ -65,7 +65,6 @@ export async function createCheckoutSession(
     metadata: { planId },
     subscription_data: {
       metadata: { planId },
-      trial_period_days: undefined, // Can enable trials per plan
     },
     customer_email: customerId ? undefined : userEmail,
   })
@@ -117,20 +116,17 @@ export async function getOrCreateCustomer(
     })
 
     // Save stripeCustomerId to database for future lookups
-    const { db: prismaDb } = await import('@/lib/db')
-
-    // Check for existing subscription record
-    const existing = await prismaDb.subscription.findFirst({
+    const existing = await prisma.subscription.findFirst({
       where: { userId },
     })
 
     if (existing) {
-      await prismaDb.subscription.update({
+      await prisma.subscription.update({
         where: { id: existing.id },
         data: { stripeCustomerId: customer.id },
       })
     } else {
-      await prismaDb.subscription.create({
+      await prisma.subscription.create({
         data: {
           userId,
           stripeCustomerId: customer.id,

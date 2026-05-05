@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 import { paginatedResponse, unauthorizedResponse, errorResponse } from '@/lib/api-response'
@@ -33,31 +32,5 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const authUser = await getAuthUser(request)
-    if (!authUser) {
-      return unauthorizedResponse()
-    }
-
-    const { amount, plan } = await request.json()
-
-    if (!amount || amount < 0) {
-      return errorResponse('Invalid invoice amount')
-    }
-
-    const invoice = await db.invoice.create({
-      data: {
-        userId: authUser.userId,
-        amount: parseFloat(amount),
-        plan: plan || 'free',
-        status: 'paid',
-      },
-    })
-
-    return NextResponse.json({ success: true, data: invoice }, { status: 201 })
-  } catch (error) {
-    console.error('Create invoice error:', error)
-    return errorResponse('Failed to create invoice', 500)
-  }
-}
+// POST removed — invoices are created automatically by Stripe webhooks only.
+// This prevents users from fabricating invoice records.

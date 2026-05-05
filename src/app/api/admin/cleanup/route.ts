@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response'
@@ -20,8 +19,13 @@ export async function POST(request: Request) {
       return unauthorizedResponse()
     }
 
-    // Only allow cleanup for admin or system users
-    // In production, add proper role checking here
+    // Only allow admin users (role check via email matching ADMIN_EMAIL env var)
+    // For production, add a 'role' field to the User model in Prisma schema
+    const adminEmail = process.env.ADMIN_EMAIL
+    if (!adminEmail || authUser.email !== adminEmail) {
+      return forbiddenResponse('Admin access required')
+    }
+
     const { searchParams } = new URL(request.url)
     const retentionDays = parseInt(searchParams.get('retentionDays') || '7', 10)
 
