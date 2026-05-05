@@ -12,12 +12,18 @@ export type ViewType =
   | 'billing'
   | 'settings'
   | 'support'
+  | 'admin-dashboard'
+  | 'admin-users'
+  | 'admin-workspaces'
+  | 'admin-tickets'
+  | 'admin-settings'
 
 export interface UserData {
   id: string
   name: string
   email: string
   plan: string
+  isAdmin?: boolean
   createdAt: string
 }
 
@@ -97,6 +103,7 @@ export const useAppStore = create<AppState>()(
                   name: userData.name,
                   email: userData.email,
                   plan: userData.plan,
+                  isAdmin: userData.isAdmin || false,
                   createdAt: userData.createdAt,
                 },
                 authChecked: true,

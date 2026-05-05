@@ -1,6 +1,6 @@
+import { requireAdmin } from '@/lib/admin'
 import { db } from '@/lib/db'
-import { getAuthUser } from '@/lib/auth'
-import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response'
+import { successResponse, errorResponse } from '@/lib/api-response'
 
 /**
  * POST /api/admin/cleanup
@@ -14,17 +14,8 @@ import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse
  */
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthUser(request)
-    if (!authUser) {
-      return unauthorizedResponse()
-    }
-
-    // Only allow admin users (role check via email matching ADMIN_EMAIL env var)
-    // For production, add a 'role' field to the User model in Prisma schema
-    const adminEmail = process.env.ADMIN_EMAIL
-    if (!adminEmail || authUser.email !== adminEmail) {
-      return forbiddenResponse('Admin access required')
-    }
+    const { response } = await requireAdmin(request)
+    if (response) return response
 
     const { searchParams } = new URL(request.url)
     const retentionDays = parseInt(searchParams.get('retentionDays') || '7', 10)
@@ -64,10 +55,8 @@ export async function POST(request: Request) {
  */
 export async function GET(request: Request) {
   try {
-    const authUser = await getAuthUser(request)
-    if (!authUser) {
-      return unauthorizedResponse()
-    }
+    const { response } = await requireAdmin(request)
+    if (response) return response
 
     const totalRecords = await db.usageRecord.count()
     const oldestRecord = await db.usageRecord.findFirst({
@@ -79,7 +68,6 @@ export async function GET(request: Request) {
       select: { timestamp: true },
     })
 
-    // Count records per day bucket
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
     const thirtyDaysAgo = new Date()

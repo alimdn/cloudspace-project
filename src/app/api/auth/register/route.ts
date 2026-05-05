@@ -65,11 +65,16 @@ export async function POST(request: Request) {
       },
     })
 
+    // Check admin status
+    const { isAdminEmail } = await import('@/lib/admin')
+    const isAdmin = isAdminEmail(user.email)
+
     // Generate JWT
     const token = await signToken({
       userId: user.id,
       email: user.email,
       plan: user.plan,
+      isAdmin,
     })
 
     // Store session
@@ -85,6 +90,7 @@ export async function POST(request: Request) {
           name: user.name,
           email: user.email,
           plan: user.plan,
+          isAdmin,
           createdAt: user.createdAt.toISOString(),
         },
       },

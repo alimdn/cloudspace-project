@@ -13,6 +13,7 @@ export interface JWTPayload {
   userId: string
   email: string
   plan: string
+  isAdmin?: boolean
 }
 
 export async function signToken(payload: JWTPayload): Promise<string> {

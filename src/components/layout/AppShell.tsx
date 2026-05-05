@@ -16,6 +16,11 @@ import { PricingView } from '@/components/dashboard/PricingView'
 import { BillingView } from '@/components/dashboard/BillingView'
 import { SettingsView } from '@/components/dashboard/SettingsView'
 import { SupportView } from '@/components/dashboard/SupportView'
+import { AdminDashboardView } from '@/components/admin/AdminDashboardView'
+import { AdminUsersView } from '@/components/admin/AdminUsersView'
+import { AdminWorkspacesView } from '@/components/admin/AdminWorkspacesView'
+import { AdminTicketsView } from '@/components/admin/AdminTicketsView'
+import { AdminSettingsView } from '@/components/admin/AdminSettingsView'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 
@@ -30,6 +35,11 @@ const viewComponents: Record<ViewType, React.ComponentType> = {
   billing: BillingView,
   settings: SettingsView,
   support: SupportView,
+  'admin-dashboard': AdminDashboardView,
+  'admin-users': AdminUsersView,
+  'admin-workspaces': AdminWorkspacesView,
+  'admin-tickets': AdminTicketsView,
+  'admin-settings': AdminSettingsView,
 }
 
 export function AppShell() {
