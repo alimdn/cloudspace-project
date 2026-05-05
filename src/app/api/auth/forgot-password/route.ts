@@ -43,9 +43,10 @@ export async function POST(request: Request) {
       })
     }
 
-    // Generate reset token
+    // Generate reset token using crypto (not Math.random)
+    const crypto = await import('crypto')
     const resetToken = bcrypt.hashSync(
-      `${user.id}-${Date.now()}-${Math.random().toString(36)}`,
+      `${user.id}-${Date.now()}-${crypto.randomBytes(32).toString('hex')}`,
       10
     )
 

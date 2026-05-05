@@ -102,7 +102,7 @@ export function BillingView() {
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `invoice-${id}.pdf`
+        a.download = `invoice-${id}.html`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)

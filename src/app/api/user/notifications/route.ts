@@ -2,15 +2,6 @@ import { NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { successResponse, unauthorizedResponse, errorResponse } from '@/lib/api-response'
 
-// Notification settings are stored in-memory for now
-// In production, these would be stored in a database table
-const userNotifications = new Map<string, {
-  email: boolean
-  workspace: boolean
-  billing: boolean
-  marketing: boolean
-}>()
-
 export async function GET(request: Request) {
   try {
     const authUser = await getAuthUser(request)
@@ -18,14 +9,24 @@ export async function GET(request: Request) {
       return unauthorizedResponse()
     }
 
-    const settings = userNotifications.get(authUser.userId) || {
-      email: true,
-      workspace: true,
-      billing: true,
-      marketing: false,
+    const { db } = await import('@/lib/db')
+    let settings = await db.userNotification.findUnique({
+      where: { userId: authUser.userId },
+    })
+
+    if (!settings) {
+      // Create default settings for new user
+      settings = await db.userNotification.create({
+        data: { userId: authUser.userId },
+      })
     }
 
-    return successResponse(settings)
+    return successResponse({
+      email: settings.email,
+      workspace: settings.workspace,
+      billing: settings.billing,
+      marketing: settings.marketing,
+    })
   } catch (error) {
     console.error('Get notifications error:', error)
     return errorResponse('Failed to fetch notification settings', 500)
@@ -42,16 +43,30 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { email, workspace, billing, marketing } = body
 
-    const settings = {
-      email: typeof email === 'boolean' ? email : true,
-      workspace: typeof workspace === 'boolean' ? workspace : true,
-      billing: typeof billing === 'boolean' ? billing : true,
-      marketing: typeof marketing === 'boolean' ? marketing : false,
-    }
+    const { db } = await import('@/lib/db')
+    const settings = await db.userNotification.upsert({
+      where: { userId: authUser.userId },
+      create: {
+        userId: authUser.userId,
+        email: typeof email === 'boolean' ? email : true,
+        workspace: typeof workspace === 'boolean' ? workspace : true,
+        billing: typeof billing === 'boolean' ? billing : true,
+        marketing: typeof marketing === 'boolean' ? marketing : false,
+      },
+      update: {
+        ...(typeof email === 'boolean' ? { email } : {}),
+        ...(typeof workspace === 'boolean' ? { workspace } : {}),
+        ...(typeof billing === 'boolean' ? { billing } : {}),
+        ...(typeof marketing === 'boolean' ? { marketing } : {}),
+      },
+    })
 
-    userNotifications.set(authUser.userId, settings)
-
-    return successResponse(settings)
+    return successResponse({
+      email: settings.email,
+      workspace: settings.workspace,
+      billing: settings.billing,
+      marketing: settings.marketing,
+    })
   } catch (error) {
     console.error('Save notifications error:', error)
     return errorResponse('Failed to save notification settings', 500)

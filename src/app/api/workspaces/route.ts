@@ -124,9 +124,8 @@ export async function POST(request: Request) {
         })
       }
     } else {
-      // Docker not available — simulate success for dev environment
-      console.warn(`[Workspace] Docker not available, creating workspace in simulation mode`)
-      // Simulate container ready after a brief delay conceptually
+      // Docker not available — create workspace record without container
+      console.warn(`[Workspace] Docker not available, workspace created in simulation mode`)
       await db.workspace.update({
         where: { id: workspace.id },
         data: { status: 'stopped' },

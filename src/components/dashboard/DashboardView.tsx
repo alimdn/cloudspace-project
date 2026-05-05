@@ -32,7 +32,7 @@ export function DashboardView() {
           setWorkspaces(data)
         }
       } catch {
-        // Use mock data on error
+        // Clear workspaces on error
         setWorkspaces([])
       } finally {
         setStatsLoading(false)

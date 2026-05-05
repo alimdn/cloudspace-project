@@ -1,10 +1,12 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'cloudspace-default-secret-change-in-production'
-
 function getSecret(): Uint8Array {
-  return new TextEncoder().encode(JWT_SECRET)
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not configured. Please set it in your .env file.')
+  }
+  return new TextEncoder().encode(secret)
 }
 
 export interface JWTPayload {

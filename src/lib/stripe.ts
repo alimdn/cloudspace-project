@@ -16,7 +16,6 @@ if (!secretKey) {
 
 export const stripe = secretKey
   ? new Stripe(secretKey, {
-      apiVersion: '2026-04-22.dahlia',
       typescript: true,
     })
   : null
@@ -101,8 +100,8 @@ export async function getOrCreateCustomer(
 
   try {
     // Check for existing customer in our DB
-    const { db } = await import('@/lib/db')
-    const subscription = await db.subscription.findFirst({
+    const { db: prisma } = await import('@/lib/db')
+    const subscription = await prisma.subscription.findFirst({
       where: { userId, stripeCustomerId: { not: '' } },
     })
 
@@ -116,6 +115,32 @@ export async function getOrCreateCustomer(
       name,
       metadata: { userId },
     })
+
+    // Save stripeCustomerId to database for future lookups
+    const { db: prismaDb } = await import('@/lib/db')
+
+    // Check for existing subscription record
+    const existing = await prismaDb.subscription.findFirst({
+      where: { userId },
+    })
+
+    if (existing) {
+      await prismaDb.subscription.update({
+        where: { id: existing.id },
+        data: { stripeCustomerId: customer.id },
+      })
+    } else {
+      await prismaDb.subscription.create({
+        data: {
+          userId,
+          stripeCustomerId: customer.id,
+          plan: 'free',
+          status: 'inactive',
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
+      })
+    }
 
     return customer.id
   } catch (error) {

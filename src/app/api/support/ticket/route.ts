@@ -20,13 +20,19 @@ export async function POST(request: Request) {
       return errorResponse('Message must be at least 10 characters')
     }
 
-    // In production, this would:
-    // 1. Create a ticket in the database
-    // 2. Send email notification to support team
-    // 3. Send confirmation email to user
+    // Create ticket in database
+    const { db } = await import('@/lib/db')
+    const ticket = await db.supportTicket.create({
+      data: {
+        userId: authUser.userId,
+        subject: subject.trim(),
+        message: message.trim(),
+        category: typeof category === 'string' ? category : 'general',
+      },
+    })
 
     return successResponse({
-      ticketId: `TK-${Date.now()}`,
+      ticketId: ticket.id,
       message: 'Your support ticket has been submitted. We will respond within 24 business hours.',
     })
   } catch (error) {

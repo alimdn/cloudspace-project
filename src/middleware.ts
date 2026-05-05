@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
-import { verifyToken, invalidateSession } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth'
 
-// Public auth routes that don't require JWT
-const PUBLIC_AUTH_PATHS = [
+// Routes that don't require JWT authentication
+const PUBLIC_PATHS = [
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/forgot-password',
   '/api/auth/reset-password',
+  '/api/webhooks/stripe',
 ]
 
 export async function middleware(request: Request) {
@@ -17,8 +18,8 @@ export async function middleware(request: Request) {
     return NextResponse.next()
   }
 
-  // Skip public auth routes
-  if (PUBLIC_AUTH_PATHS.some((path) => pathname === path || pathname.startsWith(path + '/'))) {
+  // Skip public routes
+  if (PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path + '/'))) {
     return NextResponse.next()
   }
 
@@ -55,6 +56,6 @@ export async function middleware(request: Request) {
 
 export const config = {
   matcher: [
-    '/api/((?!auth/login|auth/register|auth/forgot-password|auth/reset-password).*)',
+    '/api/((?!auth/login|auth/register|auth/forgot-password|auth/reset-password|webhooks/stripe).*)',
   ],
 }

@@ -38,6 +38,8 @@ model User {
   passwordResetTokens  PasswordResetToken[]
   subscriptions        Subscription[]
   paymentMethods       PaymentMethod[]
+  supportTickets       SupportTicket[]
+  userNotification     UserNotification?
 
   @@index([email])
 }
@@ -105,8 +107,8 @@ model Subscription {
   id                   String   @id @default(cuid())
   userId               String
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeSubscriptionId String   @unique
-  stripeCustomerId     String
+  stripeSubscriptionId String?  @unique
+  stripeCustomerId     String?
   plan                 Plan     @default(free)
   status               String   @default("active")
   currentPeriodStart   DateTime
@@ -149,4 +151,31 @@ model UsageRecord {
 
   @@index([workspaceId])
   @@index([timestamp])
+}
+
+model UserNotification {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User?    @relation(fields: [userId], references: [id])
+  email     Boolean  @default(true)
+  workspace Boolean  @default(true)
+  billing   Boolean  @default(true)
+  marketing Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  message   String
+  category  String   @default("general")
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
 }
